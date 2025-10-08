@@ -2894,19 +2894,19 @@ async function saveSettings() {
 }
 
 // Mostrar/ocultar loading de página
-function showPageLoading(show) {
+function showPageLoading(show, message = 'Cargando...') {
     let loadingEl = document.querySelector('.page-loading');
     
     if (show) {
         if (!loadingEl) {
             loadingEl = document.createElement('div');
             loadingEl.className = 'page-loading';
-            loadingEl.innerHTML = `
-                <div class="spinner"></div>
-                <p>Cargando...</p>
-            `;
             document.querySelector('.main-content').appendChild(loadingEl);
         }
+        loadingEl.innerHTML = `
+            <div class="spinner"></div>
+            <p>${message}</p>
+        `;
         loadingEl.style.display = 'block';
     } else {
         if (loadingEl) {
