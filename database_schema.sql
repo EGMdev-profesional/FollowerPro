@@ -63,7 +63,7 @@ CREATE TABLE `servicios_cache` (
 CREATE TABLE `ordenes` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `usuario_id` int(11) NOT NULL,
-  `order_id` int(11) DEFAULT NULL,
+  `order_id` varchar(100) DEFAULT NULL,
   `service_id` int(11) NOT NULL,
   `link` text NOT NULL,
   `quantity` int(11) NOT NULL,
