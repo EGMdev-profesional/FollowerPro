@@ -201,6 +201,10 @@ class Order {
 
     // Obtener órdenes por usuario
     static async getByUserId(userId, limit = 50, offset = 0, status = null) {
+        // Asegurar que limit y offset sean números enteros
+        const safeLimit = parseInt(limit) || 50;
+        const safeOffset = parseInt(offset) || 0;
+        
         let sql = `
             SELECT o.*, s.name as service_name, s.category, s.type,
                    COALESCE(o.order_id, CONCAT('LOCAL-', o.id)) as display_order_id
@@ -216,8 +220,8 @@ class Order {
             params.push(status);
         }
 
-        sql += ' ORDER BY o.fecha_creacion DESC LIMIT ? OFFSET ?';
-        params.push(limit, offset);
+        // Agregar LIMIT y OFFSET directamente en el SQL (no como parámetros preparados)
+        sql += ` ORDER BY o.fecha_creacion DESC LIMIT ${safeLimit} OFFSET ${safeOffset}`;
 
         const orders = await query(sql, params);
         return orders.map(order => ({
