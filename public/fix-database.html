@@ -167,6 +167,8 @@
             result.className = 'result';
             
             try {
+                console.log('🔧 Iniciando petición a /api/fix-order-id...');
+                
                 const response = await fetch('/api/fix-order-id', {
                     method: 'POST',
                     headers: {
@@ -174,7 +176,16 @@
                     }
                 });
                 
-                const data = await response.json();
+                console.log('📡 Respuesta recibida:', response.status, response.statusText);
+                
+                let data;
+                try {
+                    data = await response.json();
+                    console.log('📦 Datos:', data);
+                } catch (jsonError) {
+                    console.error('❌ Error parseando JSON:', jsonError);
+                    throw new Error('La respuesta del servidor no es JSON válido');
+                }
                 
                 // Ocultar loading
                 loading.classList.remove('show');
@@ -191,24 +202,42 @@
                                 🎉 ¡Ahora puedes crear órdenes sin problemas!
                             </p>
                         `;
-                    } else {
+                    } else if (data.status === 'OK') {
                         result.className = 'result info';
                         result.innerHTML = `
                             <h3>ℹ️ ${data.message}</h3>
                             <p><strong>Tipo actual:</strong> ${data.current_type}</p>
                             <p><strong>Acción:</strong> ${data.action}</p>
+                            <p style="margin-top: 15px;">
+                                ✅ La base de datos ya está correcta. Puedes crear órdenes sin problemas.
+                            </p>
+                        `;
+                    } else {
+                        result.className = 'result info';
+                        result.innerHTML = `
+                            <h3>ℹ️ Respuesta del servidor</h3>
+                            <pre>${JSON.stringify(data, null, 2)}</pre>
                         `;
                     }
                 } else {
-                    throw new Error(data.message || 'Error desconocido');
+                    // Error HTTP
+                    result.className = 'result error';
+                    result.innerHTML = `
+                        <h3>❌ Error ${response.status}</h3>
+                        <p><strong>Mensaje:</strong> ${data.message || response.statusText}</p>
+                        ${data.error ? `<p><strong>Error:</strong> ${data.error}</p>` : ''}
+                        ${data.stack ? `<pre>${data.stack}</pre>` : ''}
+                    `;
                 }
                 
             } catch (error) {
+                console.error('❌ Error en fixDatabase:', error);
                 loading.classList.remove('show');
                 result.className = 'result error';
                 result.innerHTML = `
-                    <h3>❌ Error</h3>
-                    <p>${error.message}</p>
+                    <h3>❌ Error de Conexión</h3>
+                    <p><strong>Mensaje:</strong> ${error.message}</p>
+                    <p>Verifica que el servidor esté funcionando y que la URL sea correcta.</p>
                     <pre>${error.stack || 'No hay detalles adicionales'}</pre>
                 `;
             } finally {
