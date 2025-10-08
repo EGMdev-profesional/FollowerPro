@@ -2802,3 +2802,9 @@ window.loadBalance = loadBalance;
 window.syncPendingOrders = syncPendingOrders;
 window.loadAdminConfig = loadAdminConfig;
 window.saveConfig = saveConfig;
+window.saveSettings = saveSettings;
+
+// Función para guardar configuración (alias de saveConfig)
+function saveSettings() {
+    saveConfig();
+}
