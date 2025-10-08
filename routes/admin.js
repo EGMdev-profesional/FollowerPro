@@ -59,8 +59,9 @@ router.get('/users', requireAdmin, async (req, res) => {
             params.push(`%${search}%`, `%${search}%`);
         }
         
-        sql += ` ORDER BY fecha_registro DESC LIMIT ? OFFSET ?`;
-        params.push(parseInt(limit), offset);
+        const safeLimit = parseInt(limit) || 50;
+        const safeOffset = parseInt(offset) || 0;
+        sql += ` ORDER BY fecha_registro DESC LIMIT ${safeLimit} OFFSET ${safeOffset}`;
         
         console.log('🔍 Ejecutando query:', sql);
         const users = await query(sql, params);
@@ -168,13 +169,16 @@ router.get('/transactions', requireAdmin, async (req, res) => {
         const { page = 1, limit = 50 } = req.query;
         const offset = (parseInt(page) - 1) * parseInt(limit);
         
+        const safeLimit = parseInt(limit) || 50;
+        const safeOffset = parseInt(offset) || 0;
+        
         const transactions = await query(`
             SELECT t.*, u.nombre, u.email
             FROM transacciones t
             LEFT JOIN usuarios u ON t.usuario_id = u.id
             ORDER BY t.fecha_creacion DESC
-            LIMIT ? OFFSET ?
-        `, [parseInt(limit), offset]);
+            LIMIT ${safeLimit} OFFSET ${safeOffset}
+        `);
         
         console.log(`✅ Transacciones encontradas: ${transactions.length}`);
         
@@ -219,8 +223,9 @@ router.get('/orders', requireAdmin, async (req, res) => {
             params.push(status);
         }
         
-        sql += ` ORDER BY o.fecha_creacion DESC LIMIT ? OFFSET ?`;
-        params.push(parseInt(limit), offset);
+        const safeLimit = parseInt(limit) || 50;
+        const safeOffset = parseInt(offset) || 0;
+        sql += ` ORDER BY o.fecha_creacion DESC LIMIT ${safeLimit} OFFSET ${safeOffset}`;
         
         const orders = await query(sql, params);
         
