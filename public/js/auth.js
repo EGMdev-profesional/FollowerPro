@@ -33,8 +33,18 @@ function setupLoginForm() {
     const form = document.getElementById('login-form');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
+    const rememberCheckbox = document.querySelector('input[name="remember"]');
     
     form.addEventListener('submit', handleLogin);
+    
+    // Cargar email guardado si existe
+    const savedEmail = localStorage.getItem('rememberedEmail');
+    if (savedEmail) {
+        emailInput.value = savedEmail;
+        if (rememberCheckbox) {
+            rememberCheckbox.checked = true;
+        }
+    }
     
     // Auto-completar credenciales de demo si se hace clic
     const demoCredentials = document.querySelector('.demo-item');
@@ -96,6 +106,13 @@ async function handleLogin(event) {
         const data = await response.json();
         
         if (response.ok) {
+            // Guardar email si se marcó "Recordarme"
+            if (remember) {
+                localStorage.setItem('rememberedEmail', email);
+            } else {
+                localStorage.removeItem('rememberedEmail');
+            }
+            
             showToast('¡Bienvenido a FollowerPro!', 'success');
             
             // Redirigir al dashboard

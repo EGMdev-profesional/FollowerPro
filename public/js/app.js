@@ -33,9 +33,26 @@ function setupEventListeners() {
     const sidebarToggle = document.querySelector('.sidebar-toggle');
     const sidebar = document.querySelector('.sidebar');
     
-    if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', () => {
+    if (sidebarToggle && sidebar) {
+        sidebarToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
             sidebar.classList.toggle('open');
+        });
+        
+        // Cerrar sidebar al hacer click fuera de él (solo en móvil)
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth <= 768) {
+                if (sidebar.classList.contains('open') && 
+                    !sidebar.contains(e.target) && 
+                    !sidebarToggle.contains(e.target)) {
+                    sidebar.classList.remove('open');
+                }
+            }
+        });
+        
+        // Evitar que clicks dentro del sidebar lo cierren
+        sidebar.addEventListener('click', (e) => {
+            e.stopPropagation();
         });
     }
 
@@ -98,6 +115,15 @@ function setupSidebarNavigation() {
 
 // Cambiar página
 function switchPage(page) {
+    // Actualizar estado activo en el menú
+    const menuItems = document.querySelectorAll('.menu-item');
+    menuItems.forEach(item => {
+        if (item.dataset.page === page) {
+            item.classList.add('active');
+        } else {
+            item.classList.remove('active');
+        }
+    });
     // Ocultar todas las páginas
     const pages = document.querySelectorAll('.page');
     pages.forEach(p => p.classList.remove('active'));
