@@ -41,6 +41,7 @@ const apiRoutes = require('./routes/api');
 const { router: authRoutes } = require('./routes/auth');
 const ordersRoutes = require('./routes/orders');
 const adminRoutes = require('./routes/admin');
+const healthRoutes = require('./routes/health');
 
 // Usar rutas
 app.use('/api', apiRoutes);
@@ -48,6 +49,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', authRoutes); // Alias para rutas de usuario
 app.use('/api/orders', ordersRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api', healthRoutes); // Health check routes
 
 // Middleware para verificar autenticación en rutas protegidas
 const requireAuth = (req, res, next) => {
