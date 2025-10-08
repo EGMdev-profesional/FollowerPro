@@ -2983,7 +2983,14 @@ function filterServices() {
     }
     
     appState.filteredServices = filtered;
-    displayServices(filtered);
+    
+    // Renderizar servicios filtrados
+    const servicesGrid = document.getElementById('services-grid');
+    if (servicesGrid) {
+        servicesGrid.innerHTML = '';
+        renderServicesInBatches(filtered, servicesGrid);
+    }
+    
     updateServicesStats(filtered);
 }
 
