@@ -2804,7 +2804,53 @@ window.loadAdminConfig = loadAdminConfig;
 window.saveConfig = saveConfig;
 window.saveSettings = saveSettings;
 
-// Función para guardar configuración (alias de saveConfig)
-function saveSettings() {
-    saveConfig();
+// Función para guardar configuración desde el formulario
+async function saveSettings() {
+    try {
+        showLoading(true);
+        
+        // Obtener valores del formulario
+        const siteName = document.getElementById('site-name')?.value || 'FollowerPro';
+        const defaultMarkup = document.getElementById('default-markup')?.value || '20';
+        const openRegistration = document.getElementById('open-registration')?.value || 'true';
+        const minRecharge = document.getElementById('min-recharge')?.value || '5';
+        const maxRecharge = document.getElementById('max-recharge')?.value || '1000';
+        const whatsappNumber = document.getElementById('whatsapp-number')?.value || '';
+        
+        // Guardar cada configuración
+        const configs = [
+            { key: 'sitio_nombre', value: siteName },
+            { key: 'markup_default', value: defaultMarkup },
+            { key: 'registro_abierto', value: openRegistration },
+            { key: 'min_recarga', value: minRecharge },
+            { key: 'max_recarga', value: maxRecharge },
+            { key: 'whatsapp_numero', value: whatsappNumber }
+        ];
+        
+        let success = true;
+        for (const config of configs) {
+            const response = await fetch('/api/admin/config', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(config)
+            });
+            
+            if (!response.ok) {
+                success = false;
+                break;
+            }
+        }
+        
+        if (success) {
+            showToast('Configuración guardada exitosamente', 'success');
+        } else {
+            showToast('Error al guardar algunas configuraciones', 'error');
+        }
+        
+    } catch (error) {
+        console.error('Error guardando configuración:', error);
+        showToast('Error de conexión', 'error');
+    } finally {
+        showLoading(false);
+    }
 }
