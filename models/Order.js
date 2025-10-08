@@ -46,13 +46,13 @@ class Order {
             throw new Error(`Cantidad máxima: ${service.max}`);
         }
 
-        // 3. Calcular costo total
+        // 3. Calcular costo total con markup del 25%
         let costoPorMil;
         if (service.precio_final !== null && service.precio_final !== undefined) {
             costoPorMil = parseFloat(service.precio_final);
         } else {
             const rate = parseFloat(service.rate);
-            const markup = parseFloat(service.markup || 20);
+            const markup = 25; // MARKUP FIJO DEL 25% PARA GANANCIA
             costoPorMil = rate * (1 + markup / 100);
         }
         const costoTotal = (quantity / 1000) * costoPorMil;
