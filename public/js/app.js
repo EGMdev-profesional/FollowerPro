@@ -1056,8 +1056,11 @@ async function renderServices() {
             await loadServices();
         }
 
-        // Actualizar estadísticas siempre (incluso si está vacío)
-        updateServicesStats();
+        // Inicializar allServices si no existe
+        if (!appState.allServices || appState.allServices.length === 0) {
+            appState.allServices = [...appState.services];
+            appState.filteredServices = [...appState.services];
+        }
 
         if (appState.services.length === 0) {
             showServicesEmpty();
@@ -1071,10 +1074,13 @@ async function renderServices() {
         await renderServicesInBatches(appState.services, servicesGrid);
 
         // Actualizar estadísticas después de renderizar
-        updateServicesStats();
+        updateServicesStats(appState.services);
 
         // Actualizar filtro de categorías
         updateCategoryFilter();
+        
+        // Actualizar contador de favoritos
+        updateFavoritesCount();
 
     } catch (error) {
         console.error('Error rendering services:', error);
