@@ -219,6 +219,36 @@ body {
     background-clip: text;
 }
 
+/* Botón de menú hamburguesa */
+.sidebar-toggle {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background: var(--card-background);
+    border-radius: var(--border-radius-sm);
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+}
+
+.sidebar-toggle:hover {
+    background: var(--background-color);
+    transform: scale(1.05);
+}
+
+.sidebar-toggle:active {
+    transform: scale(0.95);
+}
+
+.sidebar-toggle i {
+    font-size: 1.25rem;
+    color: var(--primary-color);
+}
+
 /* Botones */
 .btn {
     display: inline-flex;
@@ -966,6 +996,16 @@ body {
         --sidebar-width: 260px;
         --header-height: 56px;
         --border-radius: 10px;
+    }
+    
+    /* Botón hamburguesa más grande en móvil */
+    .sidebar-toggle {
+        width: 44px;
+        height: 44px;
+    }
+    
+    .sidebar-toggle i {
+        font-size: 1.4rem;
     }
     
     /* Typography */
