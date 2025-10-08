@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fix Database - FollowerPro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            max-width: 600px;
+            width: 100%;
+        }
+        
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        p {
+            color: #666;
+            margin-bottom: 30px;
+            line-height: 1.6;
+        }
+        
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        .result {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 10px;
+            display: none;
+        }
+        
+        .result.success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+            display: block;
+        }
+        
+        .result.error {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            display: block;
+        }
+        
+        .result.info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            display: block;
+        }
+        
+        .result h3 {
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+        
+        .result pre {
+            background: rgba(0,0,0,0.05);
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+            margin-top: 10px;
+            font-size: 13px;
+        }
+        
+        .loading {
+            text-align: center;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Reparar Base de Datos</h1>
+        <p>
+            Este script corregirá el tipo de dato de la columna <code>order_id</code> 
+            de INT a VARCHAR para permitir guardar IDs de órdenes correctamente.
+        </p>
+        
+        <button class="btn" id="fixBtn" onclick="fixDatabase()">
+            Ejecutar Corrección
+        </button>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 15px; color: #667eea;">Procesando...</p>
+        </div>
+        
+        <div class="result" id="result"></div>
+    </div>
+
+    <script>
+        async function fixDatabase() {
+            const btn = document.getElementById('fixBtn');
+            const loading = document.getElementById('loading');
+            const result = document.getElementById('result');
+            
+            // Deshabilitar botón y mostrar loading
+            btn.disabled = true;
+            loading.classList.add('show');
+            result.style.display = 'none';
+            result.className = 'result';
+            
+            try {
+                const response = await fetch('/api/fix-order-id', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                // Ocultar loading
+                loading.classList.remove('show');
+                
+                if (response.ok) {
+                    if (data.status === 'SUCCESS') {
+                        result.className = 'result success';
+                        result.innerHTML = `
+                            <h3>✅ ${data.message}</h3>
+                            <p><strong>Tipo anterior:</strong> ${data.old_type}</p>
+                            <p><strong>Tipo nuevo:</strong> ${data.new_type}</p>
+                            <p><strong>Acción:</strong> ${data.action}</p>
+                            <p style="margin-top: 15px;">
+                                🎉 ¡Ahora puedes crear órdenes sin problemas!
+                            </p>
+                        `;
+                    } else {
+                        result.className = 'result info';
+                        result.innerHTML = `
+                            <h3>ℹ️ ${data.message}</h3>
+                            <p><strong>Tipo actual:</strong> ${data.current_type}</p>
+                            <p><strong>Acción:</strong> ${data.action}</p>
+                        `;
+                    }
+                } else {
+                    throw new Error(data.message || 'Error desconocido');
+                }
+                
+            } catch (error) {
+                loading.classList.remove('show');
+                result.className = 'result error';
+                result.innerHTML = `
+                    <h3>❌ Error</h3>
+                    <p>${error.message}</p>
+                    <pre>${error.stack || 'No hay detalles adicionales'}</pre>
+                `;
+            } finally {
+                btn.disabled = false;
+            }
+        }
+    </script>
+</body>
+</html>
