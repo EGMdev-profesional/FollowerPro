@@ -1,11 +1,15 @@
 // Estado global de la aplicación
 let appState = {
     services: [],
+    allServices: [],
+    filteredServices: [],
     orders: [],
     balance: 0,
     selectedService: null,
     currentPage: 'dashboard',
-    rechargeAmount: 0
+    rechargeAmount: 0,
+    favoriteServices: JSON.parse(localStorage.getItem('favoriteServices') || '[]'),
+    showingFavorites: false
 };
 
 // Inicialización de la aplicación
@@ -2914,3 +2918,124 @@ function showPageLoading(show, message = 'Cargando...') {
         }
     }
 }
+
+// ==================== SISTEMA DE FILTROS Y FAVORITOS ====================
+
+// Filtrar servicios
+function filterServices() {
+    const searchTerm = document.getElementById('services-search')?.value.toLowerCase() || '';
+    const category = document.getElementById('category-filter')?.value || '';
+    const type = document.getElementById('type-filter')?.value || '';
+    const sortBy = document.getElementById('sort-filter')?.value || 'name';
+    
+    let filtered = appState.showingFavorites 
+        ? appState.allServices.filter(s => appState.favoriteServices.includes(s.service))
+        : [...appState.allServices];
+    
+    // Aplicar filtros
+    if (searchTerm) {
+        filtered = filtered.filter(service => 
+            service.name.toLowerCase().includes(searchTerm) ||
+            service.category.toLowerCase().includes(searchTerm)
+        );
+    }
+    
+    if (category) {
+        filtered = filtered.filter(service => 
+            service.category.toLowerCase().includes(category.toLowerCase())
+        );
+    }
+    
+    if (type) {
+        filtered = filtered.filter(service => 
+            service.name.toLowerCase().includes(type.toLowerCase())
+        );
+    }
+    
+    // Ordenar
+    switch(sortBy) {
+        case 'price-asc':
+            filtered.sort((a, b) => parseFloat(a.rate) - parseFloat(b.rate));
+            break;
+        case 'price-desc':
+            filtered.sort((a, b) => parseFloat(b.rate) - parseFloat(a.rate));
+            break;
+        case 'name':
+            filtered.sort((a, b) => a.name.localeCompare(b.name));
+            break;
+    }
+    
+    appState.filteredServices = filtered;
+    displayServices(filtered);
+    updateServicesStats(filtered);
+}
+
+// Limpiar filtros
+function clearFilters() {
+    document.getElementById('services-search').value = '';
+    document.getElementById('category-filter').value = '';
+    document.getElementById('type-filter').value = '';
+    document.getElementById('sort-filter').value = 'name';
+    appState.showingFavorites = false;
+    filterServices();
+}
+
+// Mostrar solo favoritos
+function showFavorites() {
+    appState.showingFavorites = !appState.showingFavorites;
+    const btn = event.target.closest('button');
+    if (appState.showingFavorites) {
+        btn.classList.add('active');
+        btn.innerHTML = '<i class="fas fa-heart"></i> Mostrando Favoritos';
+    } else {
+        btn.classList.remove('active');
+        btn.innerHTML = `<i class="fas fa-heart"></i> Ver Favoritos (<span id="favorites-count">${appState.favoriteServices.length}</span>)`;
+    }
+    filterServices();
+}
+
+// Toggle favorito
+function toggleFavorite(serviceId) {
+    const index = appState.favoriteServices.indexOf(serviceId);
+    if (index > -1) {
+        appState.favoriteServices.splice(index, 1);
+    } else {
+        appState.favoriteServices.push(serviceId);
+    }
+    localStorage.setItem('favoriteServices', JSON.stringify(appState.favoriteServices));
+    updateFavoritesCount();
+    
+    // Actualizar UI del botón
+    const btn = document.querySelector(`[data-service-id="${serviceId}"] .service-favorite`);
+    if (btn) {
+        btn.classList.toggle('active');
+        const icon = btn.querySelector('i');
+        icon.className = appState.favoriteServices.includes(serviceId) ? 'fas fa-heart' : 'far fa-heart';
+    }
+}
+
+// Actualizar contador de favoritos
+function updateFavoritesCount() {
+    const countEl = document.getElementById('favorites-count');
+    if (countEl) {
+        countEl.textContent = appState.favoriteServices.length;
+    }
+}
+
+// Actualizar estadísticas de servicios
+function updateServicesStats(services) {
+    document.getElementById('total-services').textContent = appState.allServices.length;
+    document.getElementById('filtered-services').textContent = services.length;
+    
+    // Calcular precio promedio
+    if (services.length > 0) {
+        const avgPrice = services.reduce((sum, s) => sum + parseFloat(s.rate || 0), 0) / services.length;
+        document.getElementById('avg-price').textContent = `$${avgPrice.toFixed(2)}`;
+    }
+}
+
+// Exponer funciones globalmente
+window.filterServices = filterServices;
+window.clearFilters = clearFilters;
+window.showFavorites = showFavorites;
+window.toggleFavorite = toggleFavorite;

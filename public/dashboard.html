@@ -150,14 +150,54 @@
             <div id="services-page" class="page">
                 <div class="page-header">
                     <h2>🛍️ Servicios Disponibles</h2>
-                    <div class="services-actions">
-                        <div class="search-box">
-                            <i class="fas fa-search"></i>
-                            <input type="text" id="services-search" placeholder="Buscar servicios...">
+                    <p class="page-subtitle">Explora más de 4500 servicios premium para redes sociales</p>
+                </div>
+                
+                <!-- Filtros Avanzados -->
+                <div class="services-filters">
+                    <div class="filter-row">
+                        <div class="filter-group">
+                            <label><i class="fas fa-search"></i> Buscar</label>
+                            <input type="text" id="services-search" placeholder="Buscar por nombre..." class="filter-input">
                         </div>
-                        <select id="category-filter" class="category-filter">
-                            <option value="">Todas las categorías</option>
-                        </select>
+                        
+                        <div class="filter-group">
+                            <label><i class="fas fa-layer-group"></i> Categoría</label>
+                            <select id="category-filter" class="filter-select">
+                                <option value="">Todas las categorías</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label><i class="fas fa-tag"></i> Tipo de Servicio</label>
+                            <select id="type-filter" class="filter-select">
+                                <option value="">Todos los tipos</option>
+                                <option value="Followers">Seguidores</option>
+                                <option value="Likes">Likes</option>
+                                <option value="Views">Views</option>
+                                <option value="Comments">Comentarios</option>
+                                <option value="Subscribers">Suscriptores</option>
+                            </select>
+                        </div>
+                        
+                        <div class="filter-group">
+                            <label><i class="fas fa-sort-amount-down"></i> Ordenar por</label>
+                            <select id="sort-filter" class="filter-select">
+                                <option value="name">Nombre</option>
+                                <option value="price-asc">Precio: Menor a Mayor</option>
+                                <option value="price-desc">Precio: Mayor a Menor</option>
+                                <option value="popular">Más Popular</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="filter-actions">
+                        <button class="btn btn-secondary btn-sm" onclick="clearFilters()">
+                            <i class="fas fa-times"></i> Limpiar Filtros
+                        </button>
+                        <button class="btn btn-primary btn-sm" onclick="showFavorites()">
+                            <i class="fas fa-heart"></i> Ver Favoritos (<span id="favorites-count">0</span>)
+                        </button>
                     </div>
                 </div>
                 
@@ -165,6 +205,10 @@
                     <div class="stat-item">
                         <span class="stat-number" id="total-services">0</span>
                         <span class="stat-label">Servicios</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="filtered-services">0</span>
+                        <span class="stat-label">Filtrados</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-number" id="categories-count">0</span>
@@ -179,7 +223,7 @@
                 <div class="services-grid" id="services-grid">
                     <div class="loading-services">
                         <i class="fas fa-spinner fa-spin"></i>
-                        <p>Cargando servicios...</p>
+                        <p>Cargando más de 4500 servicios...</p>
                     </div>
                 </div>
             </div>
