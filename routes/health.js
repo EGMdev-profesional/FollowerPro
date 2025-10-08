@@ -83,4 +83,72 @@ router.get('/test-admin', async (req, res) => {
     }
 });
 
+// Fix order_id column type
+router.post('/fix-order-id', async (req, res) => {
+    try {
+        console.log('🔧 Iniciando corrección de columna order_id...');
+        
+        // Verificar el tipo actual de la columna
+        const [columns] = await query(`
+            SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE 
+            FROM INFORMATION_SCHEMA.COLUMNS 
+            WHERE TABLE_SCHEMA = DATABASE() 
+            AND TABLE_NAME = 'ordenes' 
+            AND COLUMN_NAME = 'order_id'
+        `);
+
+        const currentType = columns.length > 0 ? columns[0].COLUMN_TYPE : 'No encontrado';
+        console.log('📋 Tipo actual:', currentType);
+
+        // Si ya es VARCHAR, no hacer nada
+        if (currentType.includes('varchar')) {
+            return res.json({
+                status: 'OK',
+                message: 'La columna order_id ya es VARCHAR',
+                current_type: currentType,
+                action: 'No se requiere cambio'
+            });
+        }
+
+        // Modificar la columna order_id
+        console.log('🔄 Modificando columna order_id de INT a VARCHAR(100)...');
+        
+        await query(`
+            ALTER TABLE ordenes 
+            MODIFY COLUMN order_id VARCHAR(100) DEFAULT NULL
+        `);
+
+        console.log('✅ Columna order_id modificada exitosamente');
+
+        // Verificar el cambio
+        const [newColumns] = await query(`
+            SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE 
+            FROM INFORMATION_SCHEMA.COLUMNS 
+            WHERE TABLE_SCHEMA = DATABASE() 
+            AND TABLE_NAME = 'ordenes' 
+            AND COLUMN_NAME = 'order_id'
+        `);
+
+        const newType = newColumns[0].COLUMN_TYPE;
+        console.log('📋 Nuevo tipo:', newType);
+
+        res.json({
+            status: 'SUCCESS',
+            message: 'Columna order_id corregida exitosamente',
+            old_type: currentType,
+            new_type: newType,
+            action: 'Modificación completada'
+        });
+
+    } catch (error) {
+        console.error('❌ Error corrigiendo order_id:', error);
+        res.status(500).json({
+            status: 'ERROR',
+            message: 'Error al corregir la columna',
+            error: error.message,
+            stack: error.stack
+        });
+    }
+});
+
 module.exports = router;
