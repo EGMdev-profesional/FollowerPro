@@ -87,7 +87,7 @@ body {
 /* Sidebar - Diseño Morado Moderno */
 .sidebar {
     width: var(--sidebar-width);
-    background: var(--sidebar-background);
+    background: linear-gradient(180deg, #6B46C1 0%, #553C9A 100%);
     position: fixed;
     height: 100vh;
     left: 0;
@@ -95,8 +95,9 @@ body {
     z-index: 1000;
     display: flex;
     flex-direction: column;
-    box-shadow: var(--shadow-xl);
-    backdrop-filter: blur(10px);
+    box-shadow: 2px 0 20px rgba(0, 0, 0, 0.15);
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .sidebar-header {

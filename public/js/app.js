@@ -159,12 +159,14 @@ function switchPage(page) {
 // Obtener título de página
 function getPageTitle(page) {
     const titles = {
-        'dashboard': 'Dashboard',
+        'dashboard': 'Inicio',
         'services': 'Servicios',
+        'create-order': 'Crear Orden',
         'orders': 'Mis Órdenes',
-        'recharge': 'Recargar Saldo'
+        'recharge': 'Recargar Saldo',
+        'config': 'Configuración'
     };
-    return titles[page] || 'Dashboard';
+    return titles[page] || 'Inicio';
 }
 
 // Actualizar título de página
