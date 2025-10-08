@@ -41,7 +41,6 @@ const apiRoutes = require('./routes/api');
 const { router: authRoutes } = require('./routes/auth');
 const ordersRoutes = require('./routes/orders');
 const adminRoutes = require('./routes/admin');
-const setupRoutes = require('./routes/setup');
 
 // Usar rutas
 app.use('/api', apiRoutes);
@@ -49,7 +48,6 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', authRoutes); // Alias para rutas de usuario
 app.use('/api/orders', ordersRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/setup', setupRoutes); // Ruta temporal para inicialización
 
 // Middleware para verificar autenticación en rutas protegidas
 const requireAuth = (req, res, next) => {
