@@ -1,6 +1,6 @@
 # 📋 Tareas Pendientes - Panel Social Profesional
 
-## ✅ COMPLETADO
+## ✅ COMPLETADO (Sesión actual)
 
 1. ✅ Cambiar "Dashboard" por "Inicio"
 2. ✅ Arreglar sidebar transparente
@@ -11,10 +11,51 @@
 7. ✅ Loading spinner mejorado
 8. ✅ Cambiar "SMM" por "Panel Social Profesional" en landing
 9. ✅ Responsive mejorado en login/register/órdenes
+10. ✅ Markup del 25% aplicado
+11. ✅ Filtros completos en Servicios
+12. ✅ Sistema de favoritos
+13. ✅ Sección "Obtén tu Panel" creada
+14. ✅ Sidebar footer compacto
+15. ✅ Error displayServices arreglado
 
-## 🔄 PENDIENTES CRÍTICOS
+## 🔥 NUEVOS PENDIENTES (Feedback del Cliente)
 
-### 1. Implementar Markup del 25%
+### PRIORIDAD ALTA
+
+1. **Agregar animación de carga en Servicios y Crear Orden**
+   - Mensaje: "Cargando más de 4500 servicios..."
+   - Spinner mientras carga
+   - Mejorar experiencia de usuario
+
+2. **Mejorar Responsive en TODAS las secciones**
+   - Muchas secciones no están responsive
+   - Optimizar para móvil (iPhone SE, etc.)
+   - Probar en diferentes tamaños de pantalla
+
+3. **Quitar precios de los planes en "Obtén tu Panel"**
+   - No mostrar $299, $499, $899
+   - Poner "Consultar precio"
+   - Explicar que se cobra porcentaje según necesidades
+
+4. **Agregar icono de check para favoritos**
+   - Poder quitar favoritos con un click
+   - Icono visual más claro
+   - Mejorar UX de favoritos
+
+### PRIORIDAD MEDIA
+
+5. **Optimizar rendimiento general**
+   - Reducir tiempo de carga
+   - Lazy loading de imágenes
+   - Optimizar queries a BD
+
+6. **Balance visible en header**
+   - Mostrar saldo en todas las páginas
+   - No solo en Dashboard
+
+## 🔄 PENDIENTES ANTERIORES (Ya resueltos)
+
+### 1. ~~Implementar Markup del 25%~~ ✅
 
 **Ubicación:** `models/Order.js` línea 50-57
 
