@@ -41,6 +41,7 @@ router.get('/stats', requireAdmin, async (req, res) => {
 // Obtener todos los usuarios
 router.get('/users', requireAdmin, async (req, res) => {
     try {
+        console.log('📋 Obteniendo usuarios...');
         const { page = 1, limit = 50, search = '' } = req.query;
         const offset = (parseInt(page) - 1) * parseInt(limit);
         
@@ -48,7 +49,7 @@ router.get('/users', requireAdmin, async (req, res) => {
             SELECT id, email, nombre, apellido, balance, rol, estado, 
                    fecha_registro, ultima_conexion
             FROM usuarios 
-            WHERE estado != 'eliminado'
+            WHERE 1=1
         `;
         
         const params = [];
@@ -61,11 +62,13 @@ router.get('/users', requireAdmin, async (req, res) => {
         sql += ` ORDER BY fecha_registro DESC LIMIT ? OFFSET ?`;
         params.push(parseInt(limit), offset);
         
+        console.log('🔍 Ejecutando query:', sql);
         const users = await query(sql, params);
+        console.log(`✅ Usuarios encontrados: ${users.length}`);
         
         // Obtener total de usuarios
         const totalResult = await query(
-            'SELECT COUNT(*) as total FROM usuarios WHERE estado != "eliminado"'
+            'SELECT COUNT(*) as total FROM usuarios'
         );
         
         res.json({
@@ -78,8 +81,12 @@ router.get('/users', requireAdmin, async (req, res) => {
         });
         
     } catch (error) {
-        console.error('Error obteniendo usuarios:', error);
-        res.status(500).json({ message: 'Error al obtener usuarios' });
+        console.error('❌ Error obteniendo usuarios:', error);
+        console.error('Stack:', error.stack);
+        res.status(500).json({ 
+            message: 'Error al obtener usuarios',
+            error: error.message 
+        });
     }
 });
 
@@ -157,6 +164,7 @@ router.put('/users/:userId/status', requireAdmin, async (req, res) => {
 // Obtener todas las transacciones
 router.get('/transactions', requireAdmin, async (req, res) => {
     try {
+        console.log('💳 Obteniendo transacciones...');
         const { page = 1, limit = 50 } = req.query;
         const offset = (parseInt(page) - 1) * parseInt(limit);
         
@@ -167,6 +175,8 @@ router.get('/transactions', requireAdmin, async (req, res) => {
             ORDER BY t.fecha_creacion DESC
             LIMIT ? OFFSET ?
         `, [parseInt(limit), offset]);
+        
+        console.log(`✅ Transacciones encontradas: ${transactions.length}`);
         
         const totalResult = await query('SELECT COUNT(*) as total FROM transacciones');
         
@@ -180,8 +190,12 @@ router.get('/transactions', requireAdmin, async (req, res) => {
         });
         
     } catch (error) {
-        console.error('Error obteniendo transacciones:', error);
-        res.status(500).json({ message: 'Error al obtener transacciones' });
+        console.error('❌ Error obteniendo transacciones:', error);
+        console.error('Stack:', error.stack);
+        res.status(500).json({ 
+            message: 'Error al obtener transacciones',
+            error: error.message 
+        });
     }
 });
 
