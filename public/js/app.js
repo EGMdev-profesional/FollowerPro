@@ -83,6 +83,15 @@ function setupEventListeners() {
     if (servicesSearch) {
         servicesSearch.addEventListener('input', filterServices);
     }
+    
+    // Filtros de servicios
+    const categoryFilter = document.getElementById('category-filter');
+    const typeFilter = document.getElementById('type-filter');
+    const sortFilter = document.getElementById('sort-filter');
+    
+    if (categoryFilter) categoryFilter.addEventListener('change', filterServices);
+    if (typeFilter) typeFilter.addEventListener('change', filterServices);
+    if (sortFilter) sortFilter.addEventListener('change', filterServices);
 
     // Búsqueda de órdenes
     const orderSearch = document.getElementById('order-search');
@@ -168,7 +177,9 @@ function getPageTitle(page) {
         'create-order': 'Crear Orden',
         'orders': 'Mis Órdenes',
         'recharge': 'Recargar Saldo',
-        'config': 'Configuración'
+        'settings': 'Configuración',
+        'get-panel': 'Obtén tu Panel',
+        'admin': 'Administración'
     };
     return titles[page] || 'Inicio';
 }

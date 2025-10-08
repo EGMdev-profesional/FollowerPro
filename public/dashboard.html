@@ -44,6 +44,10 @@
                     <i class="fas fa-cog"></i>
                     <span>Configuración</span>
                 </li>
+                <li class="menu-item menu-item-special" data-page="get-panel">
+                    <i class="fas fa-rocket"></i>
+                    <span>Obtén tu Panel</span>
+                </li>
                 <li class="menu-item admin-only" data-page="admin" style="display: none;">
                     <i class="fas fa-crown"></i>
                     <span>Administración</span>
@@ -602,6 +606,133 @@
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Get Panel Page -->
+            <div id="get-panel-page" class="page">
+                <div class="get-panel-container">
+                    <div class="get-panel-hero">
+                        <div class="hero-icon">
+                            <i class="fas fa-rocket"></i>
+                        </div>
+                        <h2>🚀 Obtén tu Propio Panel SMM</h2>
+                        <p class="hero-subtitle">Comienza tu negocio de reventa de servicios sociales con tu propio panel personalizado</p>
+                    </div>
+
+                    <div class="panel-features-grid">
+                        <div class="panel-feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-server"></i>
+                            </div>
+                            <h3>Panel Completo</h3>
+                            <p>Acceso a más de 4500 servicios premium para todas las redes sociales principales</p>
+                        </div>
+
+                        <div class="panel-feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-chart-line"></i>
+                            </div>
+                            <h3>Precios Personalizados</h3>
+                            <p>Establece tus propios precios y márgenes de ganancia. Tú decides cuánto ganar</p>
+                        </div>
+
+                        <div class="panel-feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-paint-brush"></i>
+                            </div>
+                            <h3>Diseño Profesional</h3>
+                            <p>Panel moderno y responsive, listo para usar con tu marca y colores</p>
+                        </div>
+
+                        <div class="panel-feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-headset"></i>
+                            </div>
+                            <h3>Soporte Técnico</h3>
+                            <p>Asistencia completa para configuración, mantenimiento y actualizaciones</p>
+                        </div>
+
+                        <div class="panel-feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <h3>Gestión de Clientes</h3>
+                            <p>Sistema completo para administrar usuarios, órdenes y transacciones</p>
+                        </div>
+
+                        <div class="panel-feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-shield-alt"></i>
+                            </div>
+                            <h3>Seguro y Confiable</h3>
+                            <p>Infraestructura robusta con respaldos automáticos y alta disponibilidad</p>
+                        </div>
+                    </div>
+
+                    <div class="pricing-section">
+                        <h3>💰 Planes Disponibles</h3>
+                        <div class="pricing-grid">
+                            <div class="pricing-card">
+                                <div class="pricing-header">
+                                    <h4>Básico</h4>
+                                    <div class="price">$299<span>/mes</span></div>
+                                </div>
+                                <ul class="pricing-features">
+                                    <li><i class="fas fa-check"></i> Panel completo</li>
+                                    <li><i class="fas fa-check"></i> 4500+ servicios</li>
+                                    <li><i class="fas fa-check"></i> Soporte por email</li>
+                                    <li><i class="fas fa-check"></i> Actualizaciones incluidas</li>
+                                </ul>
+                                <button class="btn btn-secondary" onclick="contactWhatsApp('Plan Básico')">
+                                    <i class="fab fa-whatsapp"></i> Consultar
+                                </button>
+                            </div>
+
+                            <div class="pricing-card featured">
+                                <div class="badge">Recomendado</div>
+                                <div class="pricing-header">
+                                    <h4>Profesional</h4>
+                                    <div class="price">$499<span>/mes</span></div>
+                                </div>
+                                <ul class="pricing-features">
+                                    <li><i class="fas fa-check"></i> Todo del plan Básico</li>
+                                    <li><i class="fas fa-check"></i> Personalización avanzada</li>
+                                    <li><i class="fas fa-check"></i> Soporte prioritario 24/7</li>
+                                    <li><i class="fas fa-check"></i> API personalizada</li>
+                                    <li><i class="fas fa-check"></i> Dominio propio incluido</li>
+                                </ul>
+                                <button class="btn btn-primary" onclick="contactWhatsApp('Plan Profesional')">
+                                    <i class="fab fa-whatsapp"></i> Empezar Ahora
+                                </button>
+                            </div>
+
+                            <div class="pricing-card">
+                                <div class="pricing-header">
+                                    <h4>Empresarial</h4>
+                                    <div class="price">$899<span>/mes</span></div>
+                                </div>
+                                <ul class="pricing-features">
+                                    <li><i class="fas fa-check"></i> Todo del plan Profesional</li>
+                                    <li><i class="fas fa-check"></i> Multi-panel (hasta 5)</li>
+                                    <li><i class="fas fa-check"></i> White label completo</li>
+                                    <li><i class="fas fa-check"></i> Servidor dedicado</li>
+                                    <li><i class="fas fa-check"></i> Consultoría incluida</li>
+                                </ul>
+                                <button class="btn btn-secondary" onclick="contactWhatsApp('Plan Empresarial')">
+                                    <i class="fab fa-whatsapp"></i> Consultar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="cta-section">
+                        <h3>¿Listo para empezar tu negocio?</h3>
+                        <p>Contáctanos por WhatsApp y te ayudaremos a configurar tu panel en menos de 24 horas</p>
+                        <button class="btn btn-primary btn-lg" onclick="contactWhatsApp('Quiero mi panel')">
+                            <i class="fab fa-whatsapp"></i> Contactar por WhatsApp
+                        </button>
                     </div>
                 </div>
             </div>
