@@ -81,25 +81,33 @@ router.post('/create', async (req, res) => {
 // Obtener órdenes del usuario
 router.get('/my-orders', async (req, res) => {
     try {
+        console.log('📋 Obteniendo órdenes del usuario...');
+        
         // Verificar sesión
         if (!req.session.userId) {
+            console.log('❌ No hay sesión activa');
             return res.status(401).json({ message: 'No autenticado' });
         }
 
         const userId = req.session.userId;
+        console.log('✅ Usuario ID:', userId);
+        
         const { page = 1, limit = 20, status } = req.query;
-
         const offset = (parseInt(page) - 1) * parseInt(limit);
 
+        console.log('🔍 Consultando órdenes...');
         const orders = await Order.getByUserId(
             userId,
             parseInt(limit),
             offset,
             status
         );
+        console.log(`✅ Órdenes encontradas: ${orders.length}`);
 
         // Obtener estadísticas del usuario
+        console.log('📊 Obteniendo estadísticas...');
         const stats = await Order.getStats(userId);
+        console.log('✅ Estadísticas obtenidas:', stats);
 
         res.json({
             orders: orders.map(order => ({
@@ -125,9 +133,11 @@ router.get('/my-orders', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error obteniendo órdenes:', error);
+        console.error('❌ Error obteniendo órdenes:', error);
+        console.error('Stack:', error.stack);
         res.status(500).json({
-            message: 'Error al obtener las órdenes'
+            message: 'Error al obtener las órdenes',
+            error: error.message
         });
     }
 });
