@@ -23,9 +23,17 @@ async function initDatabase() {
         const schema = fs.readFileSync('./database_schema.sql', 'utf8');
         
         console.log('🔄 Ejecutando schema SQL...');
-        await connection.query(schema);
         
-        console.log('✅ Base de datos inicializada correctamente');
+        try {
+            await connection.query(schema);
+            console.log('✅ Base de datos inicializada correctamente');
+        } catch (schemaError) {
+            if (schemaError.code === 'ER_TABLE_EXISTS_ERROR' || schemaError.message.includes('already exists')) {
+                console.log('⚠️ Las tablas ya existen, continuando...');
+            } else {
+                throw schemaError;
+            }
+        }
         console.log('✅ Tablas creadas:');
         console.log('   - usuarios');
         console.log('   - servicios_cache');
