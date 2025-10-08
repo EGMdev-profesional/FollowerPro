@@ -124,26 +124,36 @@ function switchPage(page) {
             item.classList.remove('active');
         }
     });
+    
+    // Mostrar loading
+    showPageLoading(true);
+    
     // Ocultar todas las páginas
     const pages = document.querySelectorAll('.page');
     pages.forEach(p => p.classList.remove('active'));
     
-    // Mostrar página seleccionada
-    const targetPage = document.getElementById(`${page}-page`);
-    if (targetPage) {
-        targetPage.classList.add('active');
-        
-        // Actualizar título
-        const pageTitle = document.querySelector('.page-title');
-        if (pageTitle) {
-            pageTitle.textContent = getPageTitle(page);
+    // Simular carga (para dar tiempo a cargar datos)
+    setTimeout(() => {
+        // Mostrar página seleccionada
+        const targetPage = document.getElementById(`${page}-page`);
+        if (targetPage) {
+            targetPage.classList.add('active');
+            
+            // Actualizar título
+            const pageTitle = document.querySelector('.page-title');
+            if (pageTitle) {
+                pageTitle.textContent = getPageTitle(page);
+            }
+            
+            // Cargar datos específicos de la página
+            loadPageData(page);
         }
         
-        // Cargar datos específicos de la página
-        loadPageData(page);
-    }
-    
-    appState.currentPage = page;
+        // Ocultar loading
+        showPageLoading(false);
+        
+        appState.currentPage = page;
+    }, 300); // 300ms de delay para mostrar el loading
 }
 
 // Obtener título de página
@@ -2878,5 +2888,27 @@ async function saveSettings() {
         showToast('Error de conexión', 'error');
     } finally {
         showLoading(false);
+    }
+}
+
+// Mostrar/ocultar loading de página
+function showPageLoading(show) {
+    let loadingEl = document.querySelector('.page-loading');
+    
+    if (show) {
+        if (!loadingEl) {
+            loadingEl = document.createElement('div');
+            loadingEl.className = 'page-loading';
+            loadingEl.innerHTML = `
+                <div class="spinner"></div>
+                <p>Cargando...</p>
+            `;
+            document.querySelector('.main-content').appendChild(loadingEl);
+        }
+        loadingEl.style.display = 'block';
+    } else {
+        if (loadingEl) {
+            loadingEl.style.display = 'none';
+        }
     }
 }
