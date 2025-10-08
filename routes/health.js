@@ -89,7 +89,7 @@ router.post('/fix-order-id', async (req, res) => {
         console.log('🔧 Iniciando corrección de columna order_id...');
         
         // Verificar el tipo actual de la columna
-        const [columns] = await query(`
+        const columns = await query(`
             SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE 
             FROM INFORMATION_SCHEMA.COLUMNS 
             WHERE TABLE_SCHEMA = DATABASE() 
@@ -97,11 +97,13 @@ router.post('/fix-order-id', async (req, res) => {
             AND COLUMN_NAME = 'order_id'
         `);
 
+        console.log('Columnas encontradas:', columns);
+
         const currentType = columns.length > 0 ? columns[0].COLUMN_TYPE : 'No encontrado';
         console.log('📋 Tipo actual:', currentType);
 
         // Si ya es VARCHAR, no hacer nada
-        if (currentType.includes('varchar')) {
+        if (currentType.toLowerCase().includes('varchar')) {
             return res.json({
                 status: 'OK',
                 message: 'La columna order_id ya es VARCHAR',
@@ -121,7 +123,7 @@ router.post('/fix-order-id', async (req, res) => {
         console.log('✅ Columna order_id modificada exitosamente');
 
         // Verificar el cambio
-        const [newColumns] = await query(`
+        const newColumns = await query(`
             SELECT COLUMN_NAME, DATA_TYPE, COLUMN_TYPE 
             FROM INFORMATION_SCHEMA.COLUMNS 
             WHERE TABLE_SCHEMA = DATABASE() 
