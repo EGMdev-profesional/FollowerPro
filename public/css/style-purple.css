@@ -360,6 +360,20 @@ body {
     .filter-actions .btn {
         width: 100%;
     }
+    
+    .services-filters {
+        padding: 1rem;
+    }
+    
+    .services-stats {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        padding: 1rem;
+    }
+    
+    .stat-item {
+        padding: 1rem;
+    }
 }
 
 /* Página "Obtén tu Panel" */

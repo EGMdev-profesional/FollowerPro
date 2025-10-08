@@ -3035,13 +3035,17 @@ function updateFavoritesCount() {
 
 // Actualizar estadísticas de servicios
 function updateServicesStats(services) {
-    document.getElementById('total-services').textContent = appState.allServices.length;
-    document.getElementById('filtered-services').textContent = services.length;
+    const totalEl = document.getElementById('total-services');
+    const filteredEl = document.getElementById('filtered-services');
+    const avgPriceEl = document.getElementById('avg-price');
+    
+    if (totalEl) totalEl.textContent = appState.allServices.length;
+    if (filteredEl) filteredEl.textContent = services.length;
     
     // Calcular precio promedio
-    if (services.length > 0) {
+    if (avgPriceEl && services.length > 0) {
         const avgPrice = services.reduce((sum, s) => sum + parseFloat(s.rate || 0), 0) / services.length;
-        document.getElementById('avg-price').textContent = `$${avgPrice.toFixed(2)}`;
+        avgPriceEl.textContent = `$${avgPrice.toFixed(2)}`;
     }
 }
 
