@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMMCoder SubPanel - Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style-purple.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <nav class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-rocket"></i>
+                    <span>FollowerPro</span>
+                </div>
+            </div>
+            
+            <ul class="sidebar-menu">
+                <li class="menu-item active" data-page="dashboard">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>Dashboard</span>
+                </li>
+                <li class="menu-item" data-page="services">
+                    <i class="fas fa-list"></i>
+                    <span>Servicios</span>
+                </li>
+                <li class="menu-item" data-page="create-order">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Crear Orden</span>
+                </li>
+                <li class="menu-item" data-page="orders">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>Mis Órdenes</span>
+                </li>
+                <li class="menu-item" data-page="recharge">
+                    <i class="fas fa-credit-card"></i>
+                    <span>Recargar Saldo</span>
+                </li>
+                <li class="menu-item" data-page="settings">
+                    <i class="fas fa-cog"></i>
+                    <span>Configuración</span>
+                </li>
+                <li class="menu-item admin-only" data-page="admin" style="display: none;">
+                    <i class="fas fa-crown"></i>
+                    <span>Administración</span>
+                </li>
+            </ul>
+            
+            <div class="sidebar-footer">
+                <div class="user-info" id="user-info">
+                    <div class="user-avatar">
+                        <i class="fas fa-user-circle"></i>
+                    </div>
+                    <div class="user-details">
+                        <span class="user-name" id="user-name">Cargando...</span>
+                        <span class="user-role" id="user-role">Cliente</span>
+                    </div>
+                </div>
+                <button class="btn-logout" onclick="handleLogout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Cerrar Sesión</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="sidebar-toggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 class="page-title">Dashboard</h1>
+                </div>
+                <div class="header-right">
+                    <button class="btn btn-primary" onclick="contactWhatsApp()">
+                        <i class="fab fa-whatsapp"></i>
+                        Soporte
+                    </button>
+                </div>
+            </header>
+
+            <!-- Dashboard Page -->
+            <div id="dashboard-page" class="page active">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="dashboard-balance">$0.00</h3>
+                            <p>Balance Disponible</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="dashboard-orders">0</h3>
+                            <p>Órdenes Totales</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon">
+                            <i class="fas fa-list"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="dashboard-services">0</h3>
+                            <p>Servicios Disponibles</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-quick-actions">
+                    <a href="#" onclick="switchPage('services'); return false;" class="quick-action-card">
+                        <div class="quick-action-icon">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <h3>Explorar Servicios</h3>
+                        <p>Descubre todos los servicios disponibles</p>
+                    </a>
+                    
+                    <a href="#" onclick="switchPage('orders'); return false;" class="quick-action-card">
+                        <div class="quick-action-icon">
+                            <i class="fas fa-history"></i>
+                        </div>
+                        <h3>Mis Órdenes</h3>
+                        <p>Revisa el estado de tus órdenes</p>
+                    </a>
+                    
+                    <a href="#" onclick="switchPage('recharge'); return false;" class="quick-action-card">
+                        <div class="quick-action-icon">
+                            <i class="fas fa-plus-circle"></i>
+                        </div>
+                        <h3>Recargar Saldo</h3>
+                        <p>Añade fondos a tu cuenta</p>
+                    </a>
+                </div>
+            </div>
+
+
+            <!-- Services Page -->
+            <div id="services-page" class="page">
+                <div class="page-header">
+                    <h2>🛍️ Servicios Disponibles</h2>
+                    <div class="services-actions">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="services-search" placeholder="Buscar servicios...">
+                        </div>
+                        <select id="category-filter" class="category-filter">
+                            <option value="">Todas las categorías</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="services-stats">
+                    <div class="stat-item">
+                        <span class="stat-number" id="total-services">0</span>
+                        <span class="stat-label">Servicios</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="categories-count">0</span>
+                        <span class="stat-label">Categorías</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-number" id="avg-price">$0.00</span>
+                        <span class="stat-label">Precio Promedio</span>
+                    </div>
+                </div>
+
+                <div class="services-grid" id="services-grid">
+                    <div class="loading-services">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>Cargando servicios...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Create Order Page -->
+            <div id="create-order-page" class="page">
+                <div class="page-header">
+                    <h2>🛒 Crear Nueva Orden</h2>
+                </div>
+
+                <div class="create-order-container">
+                    <div class="order-form-card">
+                        <h3>Selecciona un Servicio</h3>
+                        <div class="form-group">
+                            <label for="create-service-search">
+                                <i class="fas fa-search"></i>
+                                Buscar Servicio
+                            </label>
+                            <input type="text" id="create-service-search" placeholder="Buscar por nombre o categoría...">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="create-service-select">
+                                <i class="fas fa-list"></i>
+                                Servicio
+                            </label>
+                            <select id="create-service-select" required>
+                                <option value="">Selecciona un servicio</option>
+                            </select>
+                        </div>
+
+                        <div id="service-details" class="service-details" style="display: none;">
+                            <h4>Detalles del Servicio</h4>
+                            <div class="detail-row">
+                                <span>Categoría:</span>
+                                <span id="detail-category">-</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Tipo:</span>
+                                <span id="detail-type">-</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Precio por 1000:</span>
+                                <span id="detail-rate">$0.00</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Mínimo:</span>
+                                <span id="detail-min">-</span>
+                            </div>
+                            <div class="detail-row">
+                                <span>Máximo:</span>
+                                <span id="detail-max">-</span>
+                            </div>
+                        </div>
+
+                        <form id="create-order-form" style="display: none;">
+                            <div class="form-group">
+                                <label for="create-order-link">
+                                    <i class="fas fa-link"></i>
+                                    Link/URL *
+                                </label>
+                                <input type="url" id="create-order-link" required placeholder="https://ejemplo.com/perfil">
+                                <small>Ingresa el link del perfil, post o página</small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="create-order-quantity">
+                                    <i class="fas fa-hashtag"></i>
+                                    Cantidad *
+                                </label>
+                                <input type="number" id="create-order-quantity" required placeholder="100">
+                                <small id="quantity-range">Min: - | Max: -</small>
+                            </div>
+
+                            <div class="cost-summary">
+                                <h4>Resumen del Costo</h4>
+                                <div class="cost-row">
+                                    <span>Cantidad:</span>
+                                    <span id="summary-quantity">0</span>
+                                </div>
+                                <div class="cost-row">
+                                    <span>Precio por 1000:</span>
+                                    <span id="summary-rate">$0.00</span>
+                                </div>
+                                <div class="cost-row total">
+                                    <span>Total a pagar:</span>
+                                    <span id="summary-total">$0.00</span>
+                                </div>
+                                <div class="cost-row balance">
+                                    <span>Tu balance:</span>
+                                    <span id="summary-balance">$0.00</span>
+                                </div>
+                                <div class="cost-row remaining">
+                                    <span>Balance restante:</span>
+                                    <span id="summary-remaining">$0.00</span>
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn btn-primary btn-large" id="submit-order-btn">
+                                <i class="fas fa-shopping-cart"></i>
+                                Crear Orden
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Orders Page -->
+            <div id="orders-page" class="page">
+                <div class="page-header">
+                    <h2>📦 Mis Órdenes</h2>
+                    <div class="orders-actions">
+                        <input type="text" id="order-search" placeholder="Buscar por ID de orden...">
+                        <button class="btn btn-secondary" onclick="checkOrderStatus()">
+                            <i class="fas fa-search"></i>
+                            Consultar Estado
+                        </button>
+                        <button class="btn btn-primary" onclick="refreshOrders()">
+                            <i class="fas fa-sync-alt"></i>
+                            Actualizar
+                        </button>
+                    </div>
+                </div>
+
+                <div class="orders-summary">
+                    <div class="summary-card">
+                        <div class="summary-icon pending">
+                            <i class="fas fa-clock"></i>
+                        </div>
+                        <div class="summary-content">
+                            <h3 id="pending-count">0</h3>
+                            <p>Pendientes</p>
+                        </div>
+                    </div>
+                    
+                    <div class="summary-card">
+                        <div class="summary-icon processing">
+                            <i class="fas fa-cog fa-spin"></i>
+                        </div>
+                        <div class="summary-content">
+                            <h3 id="processing-count">0</h3>
+                            <p>En Proceso</p>
+                        </div>
+                    </div>
+                    
+                    <div class="summary-card">
+                        <div class="summary-icon completed">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <div class="summary-content">
+                            <h3 id="completed-count">0</h3>
+                            <p>Completadas</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="orders-table-container">
+                    <table class="orders-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Servicio</th>
+                                <th>Link</th>
+                                <th>Cantidad</th>
+                                <th>Estado</th>
+                                <th>Costo</th>
+                                <th>Fecha</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orders-tbody">
+                            <tr>
+                                <td colspan="8" class="no-orders">
+                                    <i class="fas fa-shopping-cart"></i>
+                                    <p>No tienes órdenes aún</p>
+                                    <button class="btn btn-primary" onclick="switchPage('services')">
+                                        Ver Servicios
+                                    </button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+
+            <!-- Recharge Page -->
+            <div id="recharge-page" class="page">
+                <div class="recharge-container">
+                    <div class="recharge-header">
+                        <h2>💰 Recargar Saldo</h2>
+                        <p>Recarga tu saldo de forma rápida y segura por WhatsApp</p>
+                    </div>
+
+                    <div class="recharge-content">
+                        <!-- Métodos de Pago -->
+                        <div class="payment-methods">
+                            <h3>Métodos de Pago Disponibles</h3>
+                            <div class="methods-grid">
+                                <div class="method-card">
+                                    <div class="method-icon">
+                                        <i class="fab fa-paypal"></i>
+                                    </div>
+                                    <h4>PayPal</h4>
+                                    <p>Pago seguro y rápido</p>
+                                </div>
+                                
+                                <div class="method-card">
+                                    <div class="method-icon">
+                                        <i class="fas fa-university"></i>
+                                    </div>
+                                    <h4>Transferencia</h4>
+                                    <p>Bancolombia, Nequi, Daviplata</p>
+                                </div>
+                                
+                                <div class="method-card">
+                                    <div class="method-icon">
+                                        <i class="fab fa-bitcoin"></i>
+                                    </div>
+                                    <h4>Criptomonedas</h4>
+                                    <p>BTC, USDT, ETH</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Calculadora de Recarga -->
+                        <div class="recharge-calculator">
+                            <h3>¿Cuánto quieres recargar?</h3>
+                            <div class="amount-selector">
+                                <div class="quick-amounts">
+                                    <button class="amount-btn" onclick="selectAmount(10)">$10 USD</button>
+                                    <button class="amount-btn" onclick="selectAmount(25)">$25 USD</button>
+                                    <button class="amount-btn" onclick="selectAmount(50)">$50 USD</button>
+                                    <button class="amount-btn" onclick="selectAmount(100)">$100 USD</button>
+                                </div>
+                                
+                                <div class="custom-amount">
+                                    <label>Cantidad personalizada:</label>
+                                    <div class="amount-input-group">
+                                        <span class="currency">$</span>
+                                        <input type="number" id="custom-amount" placeholder="0.00" min="5" step="0.01">
+                                        <span class="currency">USD</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="recharge-summary">
+                                <div class="summary-row">
+                                    <span>Monto a recargar:</span>
+                                    <span id="recharge-amount">$0.00 USD</span>
+                                </div>
+                                <div class="summary-row total">
+                                    <span>Total a pagar:</span>
+                                    <span id="total-amount">$0.00 USD</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Botón de WhatsApp -->
+                        <div class="recharge-action">
+                            <button class="btn btn-success btn-lg recharge-btn" onclick="requestRecharge()" disabled>
+                                <i class="fab fa-whatsapp"></i>
+                                Solicitar Recarga por WhatsApp
+                            </button>
+                            <p class="recharge-note">
+                                <i class="fas fa-info-circle"></i>
+                                Te contactaremos por WhatsApp para procesar tu pago de forma segura
+                            </p>
+                        </div>
+
+                        <!-- Instrucciones -->
+                        <div class="recharge-instructions">
+                            <h3>¿Cómo funciona?</h3>
+                            <div class="steps">
+                                <div class="step">
+                                    <div class="step-number">1</div>
+                                    <div class="step-content">
+                                        <h4>Selecciona el monto</h4>
+                                        <p>Elige cuánto quieres recargar</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="step">
+                                    <div class="step-number">2</div>
+                                    <div class="step-content">
+                                        <h4>Contacta por WhatsApp</h4>
+                                        <p>Haz clic en el botón para abrir WhatsApp</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="step">
+                                    <div class="step-number">3</div>
+                                    <div class="step-content">
+                                        <h4>Realiza el pago</h4>
+                                        <p>Nuestro admin te guiará en el proceso</p>
+                                    </div>
+                                </div>
+                                
+                                <div class="step">
+                                    <div class="step-number">4</div>
+                                    <div class="step-content">
+                                        <h4>Saldo agregado</h4>
+                                        <p>Tu saldo se actualiza inmediatamente</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Settings Page -->
+            <div id="settings-page" class="page">
+                <div class="settings-container">
+                    <div class="settings-header">
+                        <h2>⚙️ Configuración de Cuenta</h2>
+                        <p>Administra tu información personal y seguridad</p>
+                    </div>
+
+                    <div class="settings-content">
+                        <!-- Cambiar Contraseña -->
+                        <div class="settings-card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-lock"></i> Cambiar Contraseña</h3>
+                                <p>Actualiza tu contraseña para mantener tu cuenta segura</p>
+                            </div>
+                            <form id="change-password-form" class="settings-form">
+                                <div class="form-group">
+                                    <label for="current-password">Contraseña Actual</label>
+                                    <input type="password" id="current-password" name="currentPassword" required 
+                                           placeholder="Ingresa tu contraseña actual">
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="new-password">Nueva Contraseña</label>
+                                    <input type="password" id="new-password" name="newPassword" required 
+                                           placeholder="Mínimo 6 caracteres" minlength="6">
+                                    <small>La contraseña debe tener al menos 6 caracteres</small>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="confirm-password">Confirmar Nueva Contraseña</label>
+                                    <input type="password" id="confirm-password" name="confirmPassword" required 
+                                           placeholder="Repite la nueva contraseña">
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i>
+                                    Cambiar Contraseña
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Información de la Cuenta -->
+                        <div class="settings-card">
+                            <div class="card-header">
+                                <h3><i class="fas fa-user"></i> Información de la Cuenta</h3>
+                                <p>Detalles de tu cuenta</p>
+                            </div>
+                            <div class="account-info">
+                                <div class="info-item">
+                                    <label>Email:</label>
+                                    <span id="account-email">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Nombre:</label>
+                                    <span id="account-name">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Fecha de Registro:</label>
+                                    <span id="account-date">-</span>
+                                </div>
+                                <div class="info-item">
+                                    <label>Balance Actual:</label>
+                                    <span id="account-balance" class="balance-amount">$0.00</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Admin Page -->
+            <div id="admin-page" class="page">
+                <div class="admin-header">
+                    <h2>🛡️ Panel de Administración</h2>
+                    <p>Gestiona usuarios, balances y configuración del sistema</p>
+                </div>
+
+                <!-- Admin Stats -->
+                <div class="admin-stats">
+                    <div class="stat-card">
+                        <div class="stat-icon admin">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="admin-total-users">0</h3>
+                            <p>Usuarios Totales</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon success">
+                            <i class="fas fa-user-check"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="admin-active-users">0</h3>
+                            <p>Usuarios Activos</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="fas fa-dollar-sign"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="admin-total-balance">$0.00</h3>
+                            <p>Balance Total</p>
+                        </div>
+                    </div>
+                    
+                    <div class="stat-card">
+                        <div class="stat-icon primary">
+                            <i class="fas fa-shopping-cart"></i>
+                        </div>
+                        <div class="stat-content">
+                            <h3 id="admin-total-orders">0</h3>
+                            <p>Órdenes Totales</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Admin Tabs -->
+                <div class="admin-tabs">
+                    <button class="tab-btn admin-tab-btn active" data-tab="users" onclick="switchAdminTab('users')">
+                        <i class="fas fa-users"></i>
+                        Usuarios
+                    </button>
+                    <button class="tab-btn admin-tab-btn" data-tab="transactions" onclick="switchAdminTab('transactions')">
+                        <i class="fas fa-exchange-alt"></i>
+                        Transacciones
+                    </button>
+                    <button class="tab-btn admin-tab-btn" data-tab="orders" onclick="switchAdminTab('orders')">
+                        <i class="fas fa-list"></i>
+                        Órdenes
+                    </button>
+                    <button class="tab-btn admin-tab-btn" data-tab="config" onclick="switchAdminTab('config')">
+                        <i class="fas fa-cog"></i>
+                        Configuración
+                    </button>
+                </div>
+
+                <!-- Users Tab -->
+                <div id="admin-users-tab" class="admin-tab-content active">
+                    <div class="admin-actions">
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="users-search" placeholder="Buscar usuarios...">
+                        </div>
+                        <button class="btn btn-primary" onclick="refreshUsers()">
+                            <i class="fas fa-sync-alt"></i>
+                            Actualizar
+                        </button>
+                    </div>
+
+                    <div class="users-table-container">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Usuario</th>
+                                    <th>Email</th>
+                                    <th>Balance</th>
+                                    <th>Rol</th>
+                                    <th>Estado</th>
+                                    <th>Registro</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-table-body">
+                                <tr>
+                                    <td colspan="8" class="loading-row">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        Cargando usuarios...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Transactions Tab -->
+                <div id="admin-transactions-tab" class="admin-tab-content">
+                    <div class="admin-actions">
+                        <select id="transaction-filter" class="filter-select">
+                            <option value="">Todos los tipos</option>
+                            <option value="recarga">Recargas</option>
+                            <option value="gasto">Gastos</option>
+                            <option value="refund">Reembolsos</option>
+                            <option value="bonus">Bonos</option>
+                        </select>
+                        <button class="btn btn-primary" onclick="refreshTransactions()">
+                            <i class="fas fa-sync-alt"></i>
+                            Actualizar
+                        </button>
+                    </div>
+
+                    <div class="transactions-table-container">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Usuario</th>
+                                    <th>Tipo</th>
+                                    <th>Monto</th>
+                                    <th>Balance Anterior</th>
+                                    <th>Balance Nuevo</th>
+                                    <th>Descripción</th>
+                                    <th>Fecha</th>
+                                </tr>
+                            </thead>
+                            <tbody id="transactions-table-body">
+                                <tr>
+                                    <td colspan="8" class="loading-row">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        Cargando transacciones...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Orders Tab -->
+                <div id="admin-orders-tab" class="admin-tab-content">
+                    <div class="admin-actions">
+                        <select id="orders-filter" class="filter-select">
+                            <option value="">Todos los estados</option>
+                            <option value="Pending">Pendientes</option>
+                            <option value="In progress">En Proceso</option>
+                            <option value="Completed">Completadas</option>
+                            <option value="Canceled">Canceladas</option>
+                        </select>
+                        <button class="btn btn-warning" onclick="processPendingOrders()" style="margin-right: 10px;">
+                            <i class="fas fa-paper-plane"></i>
+                            Procesar Pendientes
+                        </button>
+                        <button class="btn btn-primary" onclick="refreshAdminOrders()">
+                            <i class="fas fa-sync-alt"></i>
+                            Actualizar
+                        </button>
+                    </div>
+
+                    <div class="orders-table-container">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Usuario</th>
+                                    <th>Servicio</th>
+                                    <th>Link</th>
+                                    <th>Cantidad</th>
+                                    <th>Costo</th>
+                                    <th>Estado</th>
+                                    <th>Fecha</th>
+                                </tr>
+                            </thead>
+                            <tbody id="admin-orders-table-body">
+                                <tr>
+                                    <td colspan="8" class="loading-row">
+                                        <i class="fas fa-spinner fa-spin"></i>
+                                        Cargando órdenes...
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Settings Tab -->
+                <div id="admin-config-tab" class="admin-tab-content">
+                    <div class="settings-grid">
+                        <div class="settings-card">
+                            <h3>Configuración General</h3>
+                            <div class="setting-item">
+                                <label>Nombre del Sitio</label>
+                                <input type="text" id="site-name" value="FollowerPro">
+                            </div>
+                            <div class="setting-item">
+                                <label>Markup por Defecto (%)</label>
+                                <input type="number" id="default-markup" value="20" min="0" max="100">
+                            </div>
+                            <div class="setting-item">
+                                <label>Registro Abierto</label>
+                                <select id="open-registration">
+                                    <option value="true">Permitir</option>
+                                    <option value="false">Cerrar</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="settings-card">
+                            <h3>Configuración de Pagos</h3>
+                            <div class="setting-item">
+                                <label>Recarga Mínima (USD)</label>
+                                <input type="number" id="min-recharge" value="5" min="1">
+                            </div>
+                            <div class="setting-item">
+                                <label>Recarga Máxima (USD)</label>
+                                <input type="number" id="max-recharge" value="1000" min="10">
+                            </div>
+                            <div class="setting-item">
+                                <label>WhatsApp de Soporte</label>
+                                <input type="text" id="whatsapp-number" placeholder="1234567890">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="settings-actions">
+                        <button class="btn btn-success" onclick="saveSettings()">
+                            <i class="fas fa-save"></i>
+                            Guardar Configuración
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+
+        </main>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loading-spinner">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p>Cargando...</p>
+        </div>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
