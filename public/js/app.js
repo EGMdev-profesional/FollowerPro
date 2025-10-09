@@ -138,8 +138,11 @@ function switchPage(page) {
         }
     });
     
-    // Mostrar loading
-    showPageLoading(true);
+    // Mostrar loading con mensaje personalizado para servicios
+    const loadingMessage = (page === 'services' || page === 'create-order') 
+        ? 'Cargando Más De 4000 Servicios, Espere Un Momento...' 
+        : 'Cargando...';
+    showPageLoading(true, loadingMessage);
     
     // Ocultar todas las páginas
     const pages = document.querySelectorAll('.page');
