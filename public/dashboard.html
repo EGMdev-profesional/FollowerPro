@@ -417,120 +417,138 @@
             <!-- Recharge Page -->
             <div id="recharge-page" class="page">
                 <div class="recharge-container">
+                    <!-- Header con icono -->
                     <div class="recharge-header">
-                        <h2>💰 Recargar Saldo</h2>
+                        <div class="recharge-icon">
+                            <i class="fas fa-wallet"></i>
+                        </div>
+                        <h2>Recargar Saldo</h2>
                         <p>Recarga tu saldo de forma rápida y segura por WhatsApp</p>
                     </div>
 
                     <div class="recharge-content">
-                        <!-- Métodos de Pago -->
-                        <div class="payment-methods">
-                            <h3>Métodos de Pago Disponibles</h3>
-                            <div class="methods-grid">
-                                <div class="method-card">
-                                    <div class="method-icon">
-                                        <i class="fab fa-paypal"></i>
-                                    </div>
-                                    <h4>PayPal</h4>
-                                    <p>Pago seguro y rápido</p>
-                                </div>
-                                
-                                <div class="method-card">
-                                    <div class="method-icon">
-                                        <i class="fas fa-university"></i>
-                                    </div>
-                                    <h4>Transferencia</h4>
-                                    <p>Bancolombia, Nequi, Daviplata</p>
-                                </div>
-                                
-                                <div class="method-card">
-                                    <div class="method-icon">
-                                        <i class="fab fa-bitcoin"></i>
-                                    </div>
-                                    <h4>Criptomonedas</h4>
-                                    <p>BTC, USDT, ETH</p>
-                                </div>
+                        <!-- Balance actual -->
+                        <div class="current-balance-card">
+                            <div class="balance-label">
+                                <i class="fas fa-coins"></i>
+                                <span>Tu Balance Actual</span>
                             </div>
+                            <div class="balance-amount" id="recharge-current-balance">$0.00</div>
                         </div>
 
                         <!-- Calculadora de Recarga -->
                         <div class="recharge-calculator">
-                            <h3>¿Cuánto quieres recargar?</h3>
-                            <div class="amount-selector">
-                                <div class="quick-amounts">
-                                    <button class="amount-btn" onclick="selectAmount(10)">$10 USD</button>
-                                    <button class="amount-btn" onclick="selectAmount(25)">$25 USD</button>
-                                    <button class="amount-btn" onclick="selectAmount(50)">$50 USD</button>
-                                    <button class="amount-btn" onclick="selectAmount(100)">$100 USD</button>
+                            <h3><i class="fas fa-calculator"></i> ¿Cuánto quieres recargar?</h3>
+                            
+                            <div class="quick-amounts">
+                                <button class="amount-btn" onclick="selectAmount(10)">
+                                    <span class="amount-value">$10</span>
+                                    <span class="amount-currency">USD</span>
+                                </button>
+                                <button class="amount-btn" onclick="selectAmount(25)">
+                                    <span class="amount-value">$25</span>
+                                    <span class="amount-currency">USD</span>
+                                </button>
+                                <button class="amount-btn" onclick="selectAmount(50)">
+                                    <span class="amount-value">$50</span>
+                                    <span class="amount-currency">USD</span>
+                                </button>
+                                <button class="amount-btn" onclick="selectAmount(100)">
+                                    <span class="amount-value">$100</span>
+                                    <span class="amount-currency">USD</span>
+                                </button>
+                            </div>
+                            
+                            <div class="custom-amount-section">
+                                <label><i class="fas fa-edit"></i> O ingresa un monto personalizado</label>
+                                <div class="amount-input-wrapper">
+                                    <span class="currency-symbol">$</span>
+                                    <input type="number" id="custom-amount" placeholder="0.00" min="5" step="0.01">
+                                    <span class="currency-code">USD</span>
                                 </div>
-                                
-                                <div class="custom-amount">
-                                    <label>Cantidad personalizada:</label>
-                                    <div class="amount-input-group">
-                                        <span class="currency">$</span>
-                                        <input type="number" id="custom-amount" placeholder="0.00" min="5" step="0.01">
-                                        <span class="currency">USD</span>
-                                    </div>
-                                </div>
+                                <small class="input-hint">Monto mínimo: $5.00 USD</small>
                             </div>
 
                             <div class="recharge-summary">
                                 <div class="summary-row">
-                                    <span>Monto a recargar:</span>
-                                    <span id="recharge-amount">$0.00 USD</span>
+                                    <span class="summary-label">Monto a recargar:</span>
+                                    <span class="summary-value" id="recharge-amount">$0.00</span>
                                 </div>
                                 <div class="summary-row total">
-                                    <span>Total a pagar:</span>
-                                    <span id="total-amount">$0.00 USD</span>
+                                    <span class="summary-label">Total a pagar:</span>
+                                    <span class="summary-value" id="total-amount">$0.00</span>
+                                </div>
+                                <div class="summary-row new-balance">
+                                    <span class="summary-label">Nuevo balance:</span>
+                                    <span class="summary-value" id="new-balance">$0.00</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Métodos de Pago -->
+                        <div class="payment-methods">
+                            <h3><i class="fas fa-credit-card"></i> Métodos de Pago</h3>
+                            <div class="methods-grid">
+                                <div class="method-card">
+                                    <i class="fab fa-paypal"></i>
+                                    <span>PayPal</span>
+                                </div>
+                                <div class="method-card">
+                                    <i class="fas fa-university"></i>
+                                    <span>Transferencia</span>
+                                </div>
+                                <div class="method-card">
+                                    <i class="fab fa-bitcoin"></i>
+                                    <span>Crypto</span>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Botón de WhatsApp -->
                         <div class="recharge-action">
-                            <button class="btn btn-success btn-lg recharge-btn" onclick="requestRecharge()" disabled>
+                            <button class="btn btn-whatsapp btn-lg recharge-btn" onclick="requestRecharge()" disabled>
                                 <i class="fab fa-whatsapp"></i>
-                                Solicitar Recarga por WhatsApp
+                                <span>Solicitar Recarga por WhatsApp</span>
                             </button>
                             <p class="recharge-note">
-                                <i class="fas fa-info-circle"></i>
-                                Te contactaremos por WhatsApp para procesar tu pago de forma segura
+                                <i class="fas fa-shield-alt"></i>
+                                Proceso seguro y rápido. Te responderemos en minutos.
                             </p>
                         </div>
 
                         <!-- Instrucciones -->
                         <div class="recharge-instructions">
-                            <h3>¿Cómo funciona?</h3>
-                            <div class="steps">
-                                <div class="step">
+                            <h3><i class="fas fa-info-circle"></i> ¿Cómo funciona?</h3>
+                            <div class="steps-grid">
+                                <div class="step-card">
                                     <div class="step-number">1</div>
                                     <div class="step-content">
-                                        <h4>Selecciona el monto</h4>
-                                        <p>Elige cuánto quieres recargar</p>
+                                        <h4>Selecciona</h4>
+                                        <p>Elige el monto que deseas recargar</p>
                                     </div>
                                 </div>
                                 
-                                <div class="step">
+                                <div class="step-card">
                                     <div class="step-number">2</div>
                                     <div class="step-content">
-                                        <h4>Contacta por WhatsApp</h4>
-                                        <p>Haz clic en el botón para abrir WhatsApp</p>
+                                        <h4>Contacta</h4>
+                                        <p>Haz clic en el botón de WhatsApp</p>
                                     </div>
                                 </div>
                                 
-                                <div class="step">
+                                <div class="step-card">
                                     <div class="step-number">3</div>
                                     <div class="step-content">
-                                        <h4>Realiza el pago</h4>
-                                        <p>Nuestro admin te guiará en el proceso</p>
+                                        <h4>Paga</h4>
+                                        <p>Realiza el pago con tu método preferido</p>
                                     </div>
                                 </div>
                                 
-                                <div class="step">
+                                <div class="step-card">
                                     <div class="step-number">4</div>
                                     <div class="step-content">
-                                        <h4>Saldo agregado</h4>
-                                        <p>Tu saldo se actualiza inmediatamente</p>
+                                        <h4>¡Listo!</h4>
+                                        <p>Tu saldo se actualiza al instante</p>
                                     </div>
                                 </div>
                             </div>

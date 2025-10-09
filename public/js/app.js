@@ -924,11 +924,15 @@ async function refreshData() {
 }
 
 // Función para contactar por WhatsApp
-function contactWhatsApp() {
-    const message = '¡Hola! Me interesa obtener un panel SMM personalizado como este. ¿Podrían darme más información sobre precios y características?';
+function contactWhatsApp(plan = '') {
+    let message = '¡Hola! Me interesa obtener un panel SMM personalizado como este. ¿Podrían darme más información sobre precios y características?';
     
-    // Usar número de WhatsApp desde configuración
-    const phoneNumber = window.CONFIG?.WHATSAPP_NUMBER || '1234567890';
+    if (plan) {
+        message = `¡Hola! Me interesa el ${plan}. ¿Podrían darme más información sobre precios y características?`;
+    }
+    
+    // Número de WhatsApp actualizado
+    const phoneNumber = '5492604111836'; // +54 9 260 411-1836
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
     
@@ -942,6 +946,12 @@ function setupRechargeEvents() {
     const customAmountInput = document.getElementById('custom-amount');
     if (customAmountInput) {
         customAmountInput.addEventListener('input', handleCustomAmountChange);
+    }
+    
+    // Actualizar balance actual en la página de recargas
+    const rechargeCurrentBalance = document.getElementById('recharge-current-balance');
+    if (rechargeCurrentBalance) {
+        rechargeCurrentBalance.textContent = `$${appState.balance.toFixed(2)}`;
     }
 }
 
@@ -985,14 +995,22 @@ function updateRechargeAmount(amount) {
     // Actualizar displays
     const rechargeAmountEl = document.getElementById('recharge-amount');
     const totalAmountEl = document.getElementById('total-amount');
+    const newBalanceEl = document.getElementById('new-balance');
     const rechargeBtn = document.querySelector('.recharge-btn');
     
     if (rechargeAmountEl) {
-        rechargeAmountEl.textContent = `$${amount.toFixed(2)} USD`;
+        rechargeAmountEl.textContent = `$${amount.toFixed(2)}`;
     }
     
     if (totalAmountEl) {
-        totalAmountEl.textContent = `$${amount.toFixed(2)} USD`;
+        totalAmountEl.textContent = `$${amount.toFixed(2)}`;
+    }
+    
+    // Calcular y mostrar nuevo balance
+    if (newBalanceEl) {
+        const currentBalance = appState.balance || 0;
+        const newBalance = currentBalance + amount;
+        newBalanceEl.textContent = `$${newBalance.toFixed(2)}`;
     }
     
     // Habilitar/deshabilitar botón
@@ -1011,13 +1029,13 @@ function requestRecharge() {
     const amount = appState.rechargeAmount;
     const message = `🔄 *SOLICITUD DE RECARGA*\n\n` +
                    `💰 Monto: $${amount.toFixed(2)} USD\n` +
-                   `📱 Usuario: [Agregar nombre/ID]\n` +
+                   `📱 Usuario: ${appState.userEmail || 'Usuario'}\n` +
                    `💳 Método preferido: [PayPal/Transferencia/Crypto]\n\n` +
                    `¡Hola! Quiero recargar $${amount.toFixed(2)} USD a mi cuenta. ` +
                    `¿Podrían ayudarme con el proceso de pago?`;
     
-    // Usar número de WhatsApp desde configuración
-    const phoneNumber = window.CONFIG?.WHATSAPP_NUMBER || '1234567890';
+    // Número de WhatsApp actualizado
+    const phoneNumber = '5492604111836'; // +54 9 260 411-1836
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
     
