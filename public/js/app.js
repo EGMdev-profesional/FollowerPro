@@ -314,7 +314,8 @@ async function loadBalance() {
         const balanceElements = [
             document.getElementById('current-balance'),
             document.getElementById('balance-amount'),
-            document.getElementById('balance-large')
+            document.getElementById('balance-large'),
+            document.getElementById('header-balance-display')
         ];
 
         balanceElements.forEach(el => {

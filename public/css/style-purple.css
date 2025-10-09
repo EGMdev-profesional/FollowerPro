@@ -368,6 +368,15 @@ body {
         font-size: 1.25rem;
     }
     
+    .header-balance {
+        padding: 0.5rem 1rem;
+        font-size: 0.875rem;
+    }
+    
+    .header-balance i {
+        font-size: 1rem;
+    }
+    
     /* Páginas */
     .page {
         padding: 1rem;
@@ -793,6 +802,35 @@ body {
     .pricing-grid {
         grid-template-columns: 1fr;
     }
+}
+
+/* Header Balance */
+.header-balance {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: var(--gradient-primary);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: var(--border-radius);
+    font-weight: 600;
+    font-size: 1.125rem;
+    box-shadow: var(--shadow-md);
+    transition: var(--transition);
+}
+
+.header-balance:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.header-balance i {
+    font-size: 1.25rem;
+}
+
+#header-balance-display {
+    font-family: 'Inter', sans-serif;
+    letter-spacing: 0.5px;
 }
 
 /* Main Content */
