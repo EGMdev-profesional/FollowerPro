@@ -85,10 +85,12 @@ function setupEventListeners() {
     }
     
     // Filtros de servicios
+    const socialNetworkFilter = document.getElementById('social-network-filter');
     const categoryFilter = document.getElementById('category-filter');
     const typeFilter = document.getElementById('type-filter');
     const sortFilter = document.getElementById('sort-filter');
     
+    if (socialNetworkFilter) socialNetworkFilter.addEventListener('change', filterServices);
     if (categoryFilter) categoryFilter.addEventListener('change', filterServices);
     if (typeFilter) typeFilter.addEventListener('change', filterServices);
     if (sortFilter) sortFilter.addEventListener('change', filterServices);
@@ -1068,14 +1070,29 @@ function requestRecharge() {
 // Configurar eventos de la página de servicios
 function setupServicesEvents() {
     const searchInput = document.getElementById('services-search');
+    const socialNetworkFilter = document.getElementById('social-network-filter');
     const categoryFilter = document.getElementById('category-filter');
+    const typeFilter = document.getElementById('type-filter');
+    const sortFilter = document.getElementById('sort-filter');
     
     if (searchInput) {
         searchInput.addEventListener('input', filterServices);
     }
     
+    if (socialNetworkFilter) {
+        socialNetworkFilter.addEventListener('change', filterServices);
+    }
+    
     if (categoryFilter) {
         categoryFilter.addEventListener('change', filterServices);
+    }
+    
+    if (typeFilter) {
+        typeFilter.addEventListener('change', filterServices);
+    }
+    
+    if (sortFilter) {
+        sortFilter.addEventListener('change', filterServices);
     }
 }
 
@@ -1131,6 +1148,7 @@ function createOptimizedServiceCard(service) {
     card.className = 'service-card';
     card.dataset.category = service.category;
     card.dataset.name = service.name.toLowerCase();
+    card.dataset.serviceId = service.service;
 
     // Calcular precio con markup
     const markup = 1.2;
@@ -1139,10 +1157,18 @@ function createOptimizedServiceCard(service) {
     // Limpiar y formatear el nombre del servicio
     const serviceName = cleanServiceName(service.name);
     const serviceDescription = extractServiceDescription(service.name);
+    
+    // Verificar si el servicio está en favoritos
+    const isFavorite = appState.favoriteServices.includes(service.service);
+    const favoriteIcon = isFavorite ? 'fas fa-heart' : 'far fa-heart';
+    const favoriteClass = isFavorite ? 'active' : '';
 
     card.innerHTML = `
         <div class="service-header">
             <div class="service-category">${service.category}</div>
+            <button class="service-favorite ${favoriteClass}" onclick="toggleFavorite(${service.service})" title="${isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}">
+                <i class="${favoriteIcon}"></i>
+            </button>
         </div>
         <div class="service-title">
             <h3>${serviceName}</h3>
@@ -1316,22 +1342,31 @@ async function retryLoadServices() {
     await renderServices();
 }
 
-// Crear tarjeta de servicio
+// Crear tarjeta de servicio (versión simple - fallback)
 function createServiceCard(service) {
     const card = document.createElement('div');
     card.className = 'service-card';
     card.dataset.category = service.category;
     card.dataset.name = service.name.toLowerCase();
+    card.dataset.serviceId = service.service;
     
     // Calcular precio con markup (ejemplo: 20% markup)
     const markup = 1.2;
     const finalPrice = (parseFloat(service.rate) * markup).toFixed(4);
     
+    // Verificar si el servicio está en favoritos
+    const isFavorite = appState.favoriteServices.includes(service.service);
+    const favoriteIcon = isFavorite ? 'fas fa-heart' : 'far fa-heart';
+    const favoriteClass = isFavorite ? 'active' : '';
+    
     card.innerHTML = `
         <div class="service-header">
-            <div class="service-name">${service.name}</div>
             <div class="service-category">${service.category}</div>
+            <button class="service-favorite ${favoriteClass}" onclick="toggleFavorite(${service.service})" title="${isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}">
+                <i class="${favoriteIcon}"></i>
+            </button>
         </div>
+        <div class="service-name">${service.name}</div>
         <div class="service-details">
             <div><strong>Tipo:</strong> ${service.type}</div>
             <div><strong>Mín:</strong> ${service.min}</div>
@@ -2978,6 +3013,7 @@ function showPageLoading(show, message = 'Cargando...') {
 // Filtrar servicios
 function filterServices() {
     const searchTerm = document.getElementById('services-search')?.value.toLowerCase() || '';
+    const socialNetwork = document.getElementById('social-network-filter')?.value || '';
     const category = document.getElementById('category-filter')?.value || '';
     const type = document.getElementById('type-filter')?.value || '';
     const sortBy = document.getElementById('sort-filter')?.value || 'name';
@@ -2991,6 +3027,14 @@ function filterServices() {
         filtered = filtered.filter(service => 
             service.name.toLowerCase().includes(searchTerm) ||
             service.category.toLowerCase().includes(searchTerm)
+        );
+    }
+    
+    // Filtro de red social (nuevo)
+    if (socialNetwork) {
+        filtered = filtered.filter(service => 
+            service.category.toLowerCase().includes(socialNetwork.toLowerCase()) ||
+            service.name.toLowerCase().includes(socialNetwork.toLowerCase())
         );
     }
     
@@ -3033,11 +3077,27 @@ function filterServices() {
 
 // Limpiar filtros
 function clearFilters() {
-    document.getElementById('services-search').value = '';
-    document.getElementById('category-filter').value = '';
-    document.getElementById('type-filter').value = '';
-    document.getElementById('sort-filter').value = 'name';
+    const searchInput = document.getElementById('services-search');
+    const socialNetworkFilter = document.getElementById('social-network-filter');
+    const categoryFilter = document.getElementById('category-filter');
+    const typeFilter = document.getElementById('type-filter');
+    const sortFilter = document.getElementById('sort-filter');
+    
+    if (searchInput) searchInput.value = '';
+    if (socialNetworkFilter) socialNetworkFilter.value = '';
+    if (categoryFilter) categoryFilter.value = '';
+    if (typeFilter) typeFilter.value = '';
+    if (sortFilter) sortFilter.value = 'name';
+    
     appState.showingFavorites = false;
+    
+    // Actualizar botón de favoritos si existe
+    const favBtn = document.querySelector('.filter-actions button[onclick="showFavorites()"]');
+    if (favBtn) {
+        favBtn.classList.remove('active');
+        favBtn.innerHTML = `<i class="fas fa-heart"></i> Ver Favoritos (<span id="favorites-count">${appState.favoriteServices.length}</span>)`;
+    }
+    
     filterServices();
 }
 
@@ -3058,20 +3118,31 @@ function showFavorites() {
 // Toggle favorito
 function toggleFavorite(serviceId) {
     const index = appState.favoriteServices.indexOf(serviceId);
+    const isAdding = index === -1;
+    
     if (index > -1) {
         appState.favoriteServices.splice(index, 1);
+        showToast('Servicio eliminado de favoritos', 'info');
     } else {
         appState.favoriteServices.push(serviceId);
+        showToast('Servicio agregado a favoritos', 'success');
     }
     localStorage.setItem('favoriteServices', JSON.stringify(appState.favoriteServices));
     updateFavoritesCount();
     
-    // Actualizar UI del botón
-    const btn = document.querySelector(`[data-service-id="${serviceId}"] .service-favorite`);
-    if (btn) {
-        btn.classList.toggle('active');
-        const icon = btn.querySelector('i');
-        icon.className = appState.favoriteServices.includes(serviceId) ? 'fas fa-heart' : 'far fa-heart';
+    // Actualizar UI del botón en la tarjeta actual
+    const card = document.querySelector(`[data-service-id="${serviceId}"]`);
+    if (card) {
+        const btn = card.querySelector('.service-favorite');
+        if (btn) {
+            const isFavorite = appState.favoriteServices.includes(serviceId);
+            btn.classList.toggle('active', isFavorite);
+            btn.title = isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos';
+            const icon = btn.querySelector('i');
+            if (icon) {
+                icon.className = isFavorite ? 'fas fa-heart' : 'far fa-heart';
+            }
+        }
     }
 }
 
