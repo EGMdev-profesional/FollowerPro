@@ -348,13 +348,73 @@ body {
     50% { transform: scale(1.3); }
 }
 
+/* ============================================
+   RESPONSIVE MOBILE - TODAS LAS SECCIONES
+   ============================================ */
+
 @media (max-width: 768px) {
+    /* Contenedor principal */
+    .main-content {
+        margin-left: 0;
+        padding: 0;
+    }
+    
+    /* Header móvil */
+    .top-header {
+        padding: 0 1rem;
+    }
+    
+    .page-title {
+        font-size: 1.25rem;
+    }
+    
+    /* Páginas */
+    .page {
+        padding: 1rem;
+    }
+    
+    .page-header {
+        margin-bottom: 1.5rem;
+    }
+    
+    .page-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    /* Dashboard - Stats Grid */
+    .stats-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        padding: 0;
+    }
+    
+    .stat-card {
+        padding: 1.25rem;
+    }
+    
+    .stat-card h3 {
+        font-size: 1.5rem;
+    }
+    
+    /* Dashboard - Quick Actions */
+    .quick-actions {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .action-card {
+        padding: 1.5rem;
+    }
+    
+    /* Servicios - Filtros */
     .filter-row {
         grid-template-columns: 1fr;
+        gap: 0.75rem;
     }
     
     .filter-actions {
         flex-direction: column;
+        gap: 0.75rem;
     }
     
     .filter-actions .btn {
@@ -363,16 +423,164 @@ body {
     
     .services-filters {
         padding: 1rem;
+        margin: 0 -1rem 1rem -1rem;
+        border-radius: 0;
     }
     
+    /* Servicios - Stats */
     .services-stats {
         grid-template-columns: repeat(2, 1fr);
-        gap: 1rem;
-        padding: 1rem;
+        gap: 0.75rem;
+        padding: 0;
+        margin-bottom: 1rem;
     }
     
     .stat-item {
+        padding: 0.75rem;
+    }
+    
+    .stat-number {
+        font-size: 1.25rem;
+    }
+    
+    .stat-label {
+        font-size: 0.75rem;
+    }
+    
+    /* Servicios - Grid */
+    .services-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        padding: 0;
+    }
+    
+    .service-card {
         padding: 1rem;
+    }
+    
+    /* Crear Orden */
+    .create-order-form {
+        padding: 1rem;
+    }
+    
+    .form-group {
+        margin-bottom: 1rem;
+    }
+    
+    .form-group label {
+        font-size: 0.875rem;
+    }
+    
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+        font-size: 1rem;
+        padding: 0.75rem;
+    }
+    
+    /* Órdenes */
+    .orders-table-container {
+        margin: 0 -1rem;
+        border-radius: 0;
+    }
+    
+    .orders-table {
+        min-width: 600px;
+    }
+    
+    .orders-table th,
+    .orders-table td {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.75rem;
+    }
+    
+    /* Recargar Saldo */
+    .recharge-container {
+        padding: 1rem;
+    }
+    
+    .amount-options {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 0.75rem;
+    }
+    
+    .amount-option {
+        padding: 1rem;
+        font-size: 1rem;
+    }
+    
+    /* Configuración */
+    .settings-container {
+        padding: 1rem;
+    }
+    
+    .settings-section {
+        padding: 1rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* Obtén tu Panel */
+    .get-panel-container {
+        padding: 1rem;
+    }
+    
+    .get-panel-hero {
+        padding: 2rem 1rem;
+        margin: 0 -1rem 2rem -1rem;
+        border-radius: 0;
+    }
+    
+    .get-panel-hero h2 {
+        font-size: 1.75rem;
+    }
+    
+    .panel-features-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .pricing-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    
+    .pricing-card {
+        padding: 1.5rem;
+    }
+    
+    /* Admin Panel */
+    .admin-stats {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .admin-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    .admin-tab-btn {
+        font-size: 0.875rem;
+        padding: 0.75rem 1rem;
+    }
+    
+    /* Botones */
+    .btn {
+        padding: 0.75rem 1.5rem;
+        font-size: 0.875rem;
+    }
+    
+    .btn-lg {
+        padding: 1rem 2rem;
+        font-size: 1rem;
+    }
+    
+    /* Modales y toasts */
+    .toast {
+        bottom: 1rem;
+        right: 1rem;
+        left: 1rem;
+        max-width: none;
     }
 }
 
