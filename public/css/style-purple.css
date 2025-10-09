@@ -3034,6 +3034,14 @@ body {
     font-size: 1.125rem;
 }
 
+.summary-row.commission {
+    color: var(--warning-color);
+}
+
+.summary-row.commission .summary-value {
+    color: var(--warning-color);
+}
+
 .summary-row.total {
     border-top: 2px solid var(--border-color);
     margin-top: 0.5rem;

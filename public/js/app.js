@@ -992,8 +992,13 @@ function handleCustomAmountChange(event) {
 function updateRechargeAmount(amount) {
     appState.rechargeAmount = amount;
     
+    // Calcular comisión del 25%
+    const commission = amount * 0.25;
+    const totalToPay = amount + commission;
+    
     // Actualizar displays
     const rechargeAmountEl = document.getElementById('recharge-amount');
+    const commissionAmountEl = document.getElementById('commission-amount');
     const totalAmountEl = document.getElementById('total-amount');
     const newBalanceEl = document.getElementById('new-balance');
     const rechargeBtn = document.querySelector('.recharge-btn');
@@ -1002,8 +1007,12 @@ function updateRechargeAmount(amount) {
         rechargeAmountEl.textContent = `$${amount.toFixed(2)}`;
     }
     
+    if (commissionAmountEl) {
+        commissionAmountEl.textContent = `$${commission.toFixed(2)}`;
+    }
+    
     if (totalAmountEl) {
-        totalAmountEl.textContent = `$${amount.toFixed(2)}`;
+        totalAmountEl.textContent = `$${totalToPay.toFixed(2)}`;
     }
     
     // Calcular y mostrar nuevo balance
@@ -1027,11 +1036,17 @@ function requestRecharge() {
     }
     
     const amount = appState.rechargeAmount;
+    const commission = amount * 0.25;
+    const totalToPay = amount + commission;
+    
     const message = `🔄 *SOLICITUD DE RECARGA*\n\n` +
-                   `💰 Monto: $${amount.toFixed(2)} USD\n` +
+                   `💰 Monto a recargar: $${amount.toFixed(2)} USD\n` +
+                   `💵 Comisión (25%): $${commission.toFixed(2)} USD\n` +
+                   `💳 Total a pagar: $${totalToPay.toFixed(2)} USD\n\n` +
                    `📱 Usuario: ${appState.userEmail || 'Usuario'}\n` +
                    `💳 Método preferido: [PayPal/Transferencia/Crypto]\n\n` +
                    `¡Hola! Quiero recargar $${amount.toFixed(2)} USD a mi cuenta. ` +
+                   `El total a pagar es $${totalToPay.toFixed(2)} USD. ` +
                    `¿Podrían ayudarme con el proceso de pago?`;
     
     // Número de WhatsApp actualizado
@@ -1042,7 +1057,7 @@ function requestRecharge() {
     window.open(whatsappUrl, '_blank');
     
     // Mostrar confirmación
-    showToast(`Solicitud de recarga por $${amount.toFixed(2)} USD enviada`, 'success');
+    showToast(`Solicitud de recarga enviada - Total a pagar: $${totalToPay.toFixed(2)} USD`, 'success');
 }
 
 // === FUNCIONES DE SERVICIOS ===
