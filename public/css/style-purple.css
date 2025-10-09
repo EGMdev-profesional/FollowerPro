@@ -2286,8 +2286,8 @@ body {
     }
     
     .account-info .info-item span {
-        font-size: 0.8rem;
-        padding: 0 0.625rem;
+        font-size: 0.7rem;
+        padding: 0 0.875rem;
         line-height: 1.3;
     }
     
@@ -2439,8 +2439,8 @@ body {
     }
     
     .account-info .info-item span {
-        font-size: 0.75rem;
-        padding: 0 0.5rem;
+        font-size: 0.65rem;
+        padding: 0 0.75rem;
         line-height: 1.3;
     }
 }
@@ -3769,7 +3769,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    padding: 1.5rem 1.25rem;
+    padding: 1.5rem 1.5rem;
     background: var(--card-background);
     border-radius: var(--border-radius);
     border: 1px solid var(--border-color);
@@ -3787,14 +3787,14 @@ body {
 }
 
 .account-info .info-item span {
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: var(--text-primary);
     word-break: break-word;
     overflow-wrap: break-word;
     width: 100%;
-    padding: 0 0.75rem;
-    line-height: 1.4;
+    padding: 0 1rem;
+    line-height: 1.3;
 }
 
 .account-info .balance-amount {
