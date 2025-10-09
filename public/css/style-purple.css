@@ -2237,8 +2237,25 @@ body {
     }
     
     /* Settings */
+    .settings-header {
+        padding: 1.5rem 1rem;
+        margin-bottom: 2rem;
+    }
+    
+    .settings-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .settings-header p {
+        font-size: 0.875rem;
+    }
+    
     .account-info {
         grid-template-columns: 1fr;
+    }
+    
+    .account-info .info-item span {
+        font-size: 0.95rem;
     }
     
     /* Toast notifications */
@@ -2349,6 +2366,19 @@ body {
     .btn-whatsapp {
         padding: 0.75rem 0.875rem;
         font-size: 0.85rem;
+    }
+    
+    /* Settings - Extra pequeño */
+    .settings-header h2 {
+        font-size: 1.25rem;
+    }
+    
+    .settings-header p {
+        font-size: 0.8rem;
+    }
+    
+    .account-info .info-item span {
+        font-size: 0.875rem;
     }
 }
 
@@ -3692,6 +3722,8 @@ body {
     font-size: 1.1rem;
     font-weight: 600;
     color: var(--text-primary);
+    word-break: break-word;
+    overflow-wrap: break-word;
 }
 
 .account-info .balance-amount {
