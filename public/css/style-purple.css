@@ -365,7 +365,16 @@ body {
     }
     
     .page-title {
-        font-size: 1.25rem;
+        font-size: 1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 150px;
+    }
+    
+    .header-left {
+        flex: 1;
+        min-width: 0;
     }
     
     .header-balance {
@@ -504,60 +513,144 @@ body {
         font-size: 0.75rem;
     }
     
-    /* Recargar Saldo */
+    /* Recargar Saldo - REDISEÑO COMPLETO MÓVIL */
     .recharge-container {
-        padding: 1rem;
+        padding: 0;
+        margin: 0;
     }
     
     .recharge-header {
         padding: 1.5rem 1rem;
-        margin: 0 -1rem 1.5rem -1rem;
+        margin: 0 0 1rem 0;
         border-radius: 0;
     }
     
     .recharge-header h2 {
-        font-size: 1.5rem;
+        font-size: 1.25rem;
     }
     
     .recharge-header p {
-        font-size: 0.875rem;
+        font-size: 0.8rem;
+    }
+    
+    .recharge-content {
+        gap: 1rem;
+        padding: 0 1rem;
     }
     
     .payment-methods,
     .recharge-calculator,
     .recharge-action,
     .recharge-instructions {
-        padding: 1.5rem;
+        padding: 1rem;
+        margin: 0;
+    }
+    
+    .payment-methods h3,
+    .recharge-calculator h3,
+    .recharge-instructions h3 {
+        font-size: 1.125rem;
+        margin-bottom: 1rem;
     }
     
     .methods-grid {
         grid-template-columns: 1fr;
-        gap: 1rem;
+        gap: 0.75rem;
+    }
+    
+    .method-card {
+        padding: 1rem;
+    }
+    
+    .method-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 1.25rem;
+    }
+    
+    .method-card h4 {
+        font-size: 1rem;
+    }
+    
+    .method-card p {
+        font-size: 0.8rem;
     }
     
     .quick-amounts {
         grid-template-columns: repeat(2, 1fr);
-        gap: 0.75rem;
+        gap: 0.5rem;
     }
     
     .amount-btn {
-        padding: 0.875rem;
+        padding: 0.75rem 0.5rem;
+        font-size: 0.8rem;
+    }
+    
+    .custom-amount label {
         font-size: 0.875rem;
+    }
+    
+    .amount-input-group input {
+        padding: 0.75rem;
+        font-size: 0.875rem;
+    }
+    
+    .recharge-summary {
+        margin-top: 1rem;
+        padding: 1rem;
+    }
+    
+    .summary-row {
+        font-size: 0.875rem;
+        padding: 0.5rem 0;
+    }
+    
+    .summary-row.total {
+        font-size: 1.125rem;
+    }
+    
+    .recharge-action {
+        padding: 1rem;
     }
     
     .recharge-btn {
         max-width: 100%;
-        padding: 1rem 1.5rem;
-        font-size: 1rem;
+        padding: 1rem;
+        font-size: 0.95rem;
+    }
+    
+    .recharge-note {
+        font-size: 0.75rem;
+        margin-top: 0.75rem;
+    }
+    
+    .recharge-instructions {
+        padding: 1rem;
     }
     
     .steps {
-        gap: 1rem;
+        gap: 0.75rem;
     }
     
     .step {
-        flex-direction: column;
-        text-align: center;
+        flex-direction: row;
+        text-align: left;
+        padding: 0.75rem;
+    }
+    
+    .step-number {
+        width: 35px;
+        height: 35px;
+        font-size: 1rem;
+        flex-shrink: 0;
+    }
+    
+    .step-content h4 {
+        font-size: 0.95rem;
+    }
+    
+    .step-content p {
+        font-size: 0.8rem;
     }
     
     /* Configuración */
@@ -2745,36 +2838,16 @@ body {
     background: var(--background-color);
 }
 
-/* Loading States */
+/* Loading States - OCULTAR SIEMPRE */
 .loading-services,
-.loading-row {
+.loading-row,
+.loading-services p,
+.loading-row p {
     display: none !important;
-}
-
-/* Loading inicial (solo cuando se carga la página) */
-.services-grid .loading-services:only-child {
-    display: flex !important;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    padding: 3rem;
-    color: var(--text-secondary);
-    min-height: 300px;
-}
-
-.services-grid .loading-services:only-child i {
-    font-size: 3rem;
-    color: var(--primary-color);
-    margin-bottom: 1.5rem;
-    display: block;
-}
-
-.services-grid .loading-services:only-child p {
-    font-size: 1.125rem;
-    font-weight: 500;
-    color: var(--text-primary);
-    margin: 0;
+    visibility: hidden !important;
+    opacity: 0 !important;
+    height: 0 !important;
+    overflow: hidden !important;
 }
 
 /* Skeleton Loading */
