@@ -2243,11 +2243,13 @@ body {
     }
     
     .settings-header h2 {
-        font-size: 1.5rem;
+        font-size: 1.375rem;
+        line-height: 1.3;
     }
     
     .settings-header p {
         font-size: 0.875rem;
+        line-height: 1.4;
     }
     
     .account-info {
@@ -2369,12 +2371,18 @@ body {
     }
     
     /* Settings - Extra pequeño */
+    .settings-header {
+        padding: 1.25rem 0.875rem;
+    }
+    
     .settings-header h2 {
-        font-size: 1.25rem;
+        font-size: 1.125rem;
+        line-height: 1.2;
     }
     
     .settings-header p {
         font-size: 0.8rem;
+        line-height: 1.3;
     }
     
     .account-info .info-item span {
