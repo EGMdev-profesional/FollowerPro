@@ -508,14 +508,55 @@ body {
         padding: 1rem;
     }
     
-    .amount-options {
+    .recharge-header {
+        padding: 1.5rem 1rem;
+        margin: 0 -1rem 1.5rem -1rem;
+        border-radius: 0;
+    }
+    
+    .recharge-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .recharge-header p {
+        font-size: 0.875rem;
+    }
+    
+    .payment-methods,
+    .recharge-calculator,
+    .recharge-action,
+    .recharge-instructions {
+        padding: 1.5rem;
+    }
+    
+    .methods-grid {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+    
+    .quick-amounts {
         grid-template-columns: repeat(2, 1fr);
         gap: 0.75rem;
     }
     
-    .amount-option {
-        padding: 1rem;
+    .amount-btn {
+        padding: 0.875rem;
+        font-size: 0.875rem;
+    }
+    
+    .recharge-btn {
+        max-width: 100%;
+        padding: 1rem 1.5rem;
         font-size: 1rem;
+    }
+    
+    .steps {
+        gap: 1rem;
+    }
+    
+    .step {
+        flex-direction: column;
+        text-align: center;
     }
     
     /* Configuración */
@@ -2237,32 +2278,35 @@ body {
 .recharge-container {
     max-width: 900px;
     margin: 0 auto;
+    padding: 2rem;
 }
 
 .recharge-header {
     text-align: center;
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
     padding: 2rem;
     background: var(--gradient-primary);
     border-radius: var(--border-radius-lg);
     color: var(--text-white);
+    box-shadow: var(--shadow-lg);
 }
 
 .recharge-header h2 {
-    font-size: 2.5rem;
+    font-size: 2rem;
     font-weight: 700;
     margin-bottom: 0.5rem;
 }
 
 .recharge-header p {
-    font-size: 1.125rem;
-    opacity: 0.9;
+    font-size: 1rem;
+    opacity: 0.95;
+    margin: 0;
 }
 
 .recharge-content {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.5rem;
 }
 
 /* Payment Methods */
@@ -2429,15 +2473,20 @@ body {
 }
 
 .recharge-action {
+    background: var(--card-background);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
     text-align: center;
-    margin-top: 2rem;
 }
 
 .recharge-btn {
     width: 100%;
-    max-width: 400px;
+    max-width: 500px;
     padding: 1.25rem 2rem;
     font-size: 1.125rem;
+    margin: 0 auto;
+    display: block;
 }
 
 .recharge-note {
@@ -2448,6 +2497,7 @@ body {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    flex-wrap: wrap;
 }
 
 /* Recharge Instructions */
@@ -2697,17 +2747,30 @@ body {
 /* Loading States */
 .loading-services,
 .loading-row {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
     text-align: center;
     padding: 3rem;
     color: var(--text-secondary);
+    min-height: 300px;
 }
 
 .loading-services i,
 .loading-row i {
-    font-size: 2rem;
+    font-size: 3rem;
     color: var(--primary-color);
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
     display: block;
+}
+
+.loading-services p,
+.loading-row p {
+    font-size: 1.125rem;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin: 0;
 }
 
 /* Skeleton Loading */
