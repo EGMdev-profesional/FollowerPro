@@ -1806,7 +1806,7 @@ body {
     }
     
     .recharge-content {
-        padding: 1rem;
+        padding: 1.125rem;
         gap: 1rem;
     }
     
@@ -2940,7 +2940,7 @@ body {
     display: flex;
     flex-direction: column;
     gap: 1.25rem;
-    padding: 1.25rem;
+    padding: 1.5rem;
     width: 100%;
     box-sizing: border-box;
 }
