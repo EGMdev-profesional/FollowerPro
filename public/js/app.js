@@ -1201,13 +1201,9 @@ function createOptimizedServiceCard(service) {
             <span class="price-value">$${finalPrice}</span>
         </div>
         <div class="service-actions">
-            <button class="btn btn-primary btn-sm" onclick="orderService(${service.service})">
+            <button class="btn btn-primary btn-block" onclick="orderService(${service.service})">
                 <i class="fas fa-shopping-cart"></i>
-                Ordenar
-            </button>
-            <button class="btn btn-secondary btn-sm" onclick="viewServiceDetails(${service.service})">
-                <i class="fas fa-info-circle"></i>
-                Info
+                Ordenar Ahora
             </button>
         </div>
     `;
@@ -1379,13 +1375,9 @@ function createServiceCard(service) {
         </div>
         <div class="service-price">$${finalPrice} por 1000</div>
         <div class="service-actions">
-            <button class="btn btn-primary btn-sm" onclick="orderService(${service.service})">
+            <button class="btn btn-primary btn-block" onclick="orderService(${service.service})">
                 <i class="fas fa-shopping-cart"></i>
-                Ordenar
-            </button>
-            <button class="btn btn-secondary btn-sm" onclick="viewServiceDetails(${service.service})">
-                <i class="fas fa-info"></i>
-                Detalles
+                Ordenar Ahora
             </button>
         </div>
     `;

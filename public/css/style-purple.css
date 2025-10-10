@@ -1116,6 +1116,11 @@ body {
     transform: translateY(-2px);
 }
 
+.btn-block {
+    width: 100%;
+    display: block;
+}
+
 /* Cards */
 .card {
     background: var(--card-background);
@@ -1309,40 +1314,44 @@ body {
     box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
 }
 
-/* Botón de favoritos en tarjeta de servicio */
+/* Botón de favoritos en tarjeta de servicio - Mejorado */
 .service-favorite {
-    background: transparent;
-    border: 2px solid var(--border-color);
-    color: var(--text-secondary);
-    width: 40px;
-    height: 40px;
+    background: rgba(255, 255, 255, 0.9);
+    border: none;
+    color: #CBD5E1;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: var(--transition);
-    font-size: 1.1rem;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    font-size: 1rem;
     padding: 0;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 2;
 }
 
 .service-favorite:hover {
-    background: var(--background-color);
-    border-color: var(--primary-color);
-    color: var(--primary-color);
-    transform: scale(1.1);
+    background: rgba(255, 255, 255, 1);
+    color: #EF4444;
+    transform: scale(1.15);
+    box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
 }
 
 .service-favorite.active {
     background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
-    border-color: #EF4444;
     color: white;
     animation: heartBeat 0.3s ease-in-out;
+    box-shadow: 0 4px 16px rgba(239, 68, 68, 0.4);
 }
 
 .service-favorite.active:hover {
     background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
-    transform: scale(1.1);
+    transform: scale(1.15);
+    box-shadow: 0 6px 20px rgba(239, 68, 68, 0.5);
 }
 
 @keyframes heartBeat {
