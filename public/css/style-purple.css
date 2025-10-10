@@ -1801,7 +1801,7 @@ body {
     
     /* Recharge - Mobile Responsive */
     .recharge-container {
-        padding: 0.75rem;
+        padding: 1rem;
         max-width: 100%;
     }
     
@@ -1826,27 +1826,27 @@ body {
     }
     
     .current-balance-card {
-        padding: 1.5rem;
+        padding: 2rem 1.5rem;
     }
     
     .balance-amount {
-        font-size: 2.25rem;
+        font-size: 2.75rem;
     }
     
     .recharge-calculator,
     .payment-methods,
     .recharge-action {
-        padding: 1.5rem 1.25rem;
+        padding: 2rem 1.5rem;
     }
     
     .quick-amounts {
         grid-template-columns: repeat(2, 1fr);
-        gap: 0.875rem;
+        gap: 1rem;
     }
     
     .amount-btn {
-        padding: 1.125rem 0.875rem;
-        min-height: 75px;
+        padding: 1.25rem 1rem;
+        min-height: 85px;
     }
     
     .amount-value {
@@ -2861,9 +2861,10 @@ body {
    ============================================ */
 
 .recharge-container {
-    max-width: 100%;
+    max-width: 900px;
     margin: 0 auto;
-    padding: 1rem;
+    padding: 2rem;
+    width: 100%;
 }
 
 /* Header con icono */
@@ -2927,19 +2928,33 @@ body {
 }
 
 .recharge-content {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    width: 100%;
 }
 
 /* Balance actual card */
 .current-balance-card {
     background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
-    padding: 1.5rem;
-    border-radius: var(--border-radius);
+    padding: 2.5rem;
+    border-radius: var(--border-radius-lg);
     color: var(--text-white);
     text-align: center;
-    box-shadow: var(--shadow-md);
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+}
+
+.current-balance-card::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    right: -50%;
+    width: 200%;
+    height: 200%;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
+    pointer-events: none;
 }
 
 .balance-label {
@@ -2953,19 +2968,20 @@ body {
 }
 
 .balance-amount {
-    font-size: 2.5rem;
+    font-size: 3.5rem;
     font-weight: 700;
-    letter-spacing: -1px;
+    letter-spacing: -2px;
+    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
 }
 
 /* Recharge Calculator */
 .recharge-calculator {
     background: var(--card-background);
-    padding: 1.75rem 1.5rem;
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow);
+    padding: 2.5rem;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
     border: 1px solid var(--border-color);
-    max-width: 100%;
+    width: 100%;
 }
 
 .recharge-calculator h3 {
@@ -2985,24 +3001,43 @@ body {
 /* Quick amounts - Grid responsive */
 .quick-amounts {
     display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1rem;
-    margin-bottom: 1.5rem;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 2rem;
 }
 
 .amount-btn {
-    padding: 1.25rem 1rem;
+    padding: 1.5rem 1rem;
     background: var(--background-color);
     border: 2px solid var(--border-color);
     border-radius: var(--border-radius);
     font-weight: 600;
     cursor: pointer;
-    transition: var(--transition);
+    transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 0.25rem;
-    min-height: 70px;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 90px;
+    position: relative;
+    overflow: hidden;
+}
+
+.amount-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: var(--gradient-primary);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.amount-btn:hover::before {
+    opacity: 0.1;
 }
 
 .amount-value {
