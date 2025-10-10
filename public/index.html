@@ -330,7 +330,7 @@
         .footer {
             background: var(--text-primary);
             color: var(--text-white);
-            padding: 3rem 5% 2rem;
+            padding: 2rem 5% 1rem;
             text-align: center;
         }
 
@@ -340,25 +340,25 @@
         }
 
         .footer h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
+            font-size: 1.25rem;
+            margin-bottom: 0.75rem;
         }
 
         .footer p {
             opacity: 0.8;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
         }
 
         .social-links {
             display: flex;
             justify-content: center;
             gap: 1rem;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
         }
 
         .social-link {
-            width: 50px;
-            height: 50px;
+            width: 40px;
+            height: 40px;
             background: rgba(255, 255, 255, 0.1);
             border-radius: 50%;
             display: flex;
@@ -376,7 +376,7 @@
 
         .footer-bottom {
             border-top: 1px solid rgba(255, 255, 255, 0.1);
-            padding-top: 2rem;
+            padding-top: 1rem;
             opacity: 0.6;
         }
 
@@ -514,6 +514,29 @@
         .feature-card:nth-child(1) { animation-delay: 0.1s; }
         .feature-card:nth-child(2) { animation-delay: 0.2s; }
         .feature-card:nth-child(3) { animation-delay: 0.3s; }
+
+        .whatsapp-float {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #25D366;
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            transition: transform 0.3s ease;
+            text-decoration: none;
+        }
+
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+        }
     </style>
 </head>
 <body>
@@ -617,24 +640,19 @@
             <p>Tu socio confiable para el crecimiento en redes sociales</p>
             
             <div class="social-links">
-                <a href="#" class="social-link">
-                    <i class="fab fa-facebook-f"></i>
-                </a>
-                <a href="#" class="social-link">
-                    <i class="fab fa-twitter"></i>
-                </a>
-                <a href="#" class="social-link">
+                <a href="https://www.instagram.com/dai.mktng?igsh=cXYyMmFndWR6NmEz" class="social-link">
                     <i class="fab fa-instagram"></i>
                 </a>
-                <a href="#" class="social-link">
-                    <i class="fab fa-telegram"></i>
-                </a>
             </div>
-            
             <div class="footer-bottom">
                 <p>&copy; 2024 FollowerPro. Todos los derechos reservados.</p>
             </div>
-        </div>
-    </footer>
+    <!-- Botón flotante de WhatsApp -->
+    <a href="https://wa.me/5491138520755?text=¡Hola!%20Necesito%20ayuda%20con%20mi%20panel%20SMM" 
+       class="whatsapp-float" 
+       target="_blank"
+       title="Contactar por WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+    </a>
 </body>
 </html>
