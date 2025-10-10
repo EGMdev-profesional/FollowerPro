@@ -1362,18 +1362,35 @@ function createServiceCard(service) {
                 <i class="${favoriteIcon}"></i>
             </button>
         </div>
-        <div class="service-name">${service.name}</div>
+        <div class="service-title">
+            <h3>${service.name}</h3>
+        </div>
         <div class="service-details">
-            <div><strong>Tipo:</strong> ${service.type}</div>
-            <div><strong>Mín:</strong> ${service.min}</div>
-            <div><strong>Máx:</strong> ${service.max}</div>
-            <div><strong>Rate:</strong> $${service.rate}</div>
+            <div class="detail-item">
+                <span class="detail-label">Tipo</span>
+                <span class="detail-value">${service.type}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Mínimo</span>
+                <span class="detail-value">${formatNumber(service.min)}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Máximo</span>
+                <span class="detail-value">${formatNumber(service.max)}</span>
+            </div>
+            <div class="detail-item">
+                <span class="detail-label">Rate</span>
+                <span class="detail-value">$${service.rate}</span>
+            </div>
         </div>
         <div class="service-features">
-            ${service.refill ? '<span class="badge badge-success">Refill</span>' : ''}
-            ${service.cancel ? '<span class="badge badge-warning">Cancelable</span>' : ''}
+            ${service.refill ? '<span class="badge badge-success"><i class="fas fa-sync"></i> Refill</span>' : ''}
+            ${service.cancel ? '<span class="badge badge-warning"><i class="fas fa-times-circle"></i> Cancelable</span>' : ''}
         </div>
-        <div class="service-price">$${finalPrice} por 1000</div>
+        <div class="service-price">
+            <span class="price-label">Precio por 1000</span>
+            <span class="price-value">$${finalPrice}</span>
+        </div>
         <div class="service-actions">
             <button class="btn btn-primary btn-block" onclick="orderService(${service.service})">
                 <i class="fas fa-shopping-cart"></i>
