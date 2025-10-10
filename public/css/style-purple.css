@@ -3841,22 +3841,26 @@ body {
     line-height: 1.4;
 }
 
+/* Settings - Rediseño ancho */
 .settings-content {
     display: flex;
     flex-direction: column;
-    gap: 2rem;
+    gap: 1.5rem;
+    padding: 0.1rem;
 }
 
 .settings-card {
     background: var(--card-background);
-    padding: 2rem;
+    padding: 0.75rem;
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
+    box-sizing: border-box;
+    width: 100%;
 }
 
 .settings-card .card-header {
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.75rem;
     border-bottom: 2px solid var(--border-color);
 }
 
@@ -3929,13 +3933,13 @@ body {
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
-    padding: 1.25rem 1rem;
+    padding: 1rem 0.75rem;
     background: var(--card-background);
     border-radius: var(--border-radius);
     border: 1px solid var(--border-color);
     text-align: center;
     align-items: center;
-    min-height: 90px;
+    min-height: 80px;
     max-width: 100%;
 }
 
