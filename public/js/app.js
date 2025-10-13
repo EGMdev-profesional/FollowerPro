@@ -165,6 +165,12 @@ function switchPage(page) {
             
             // Cargar datos específicos de la página
             loadPageData(page);
+
+            // Limpiar servicio seleccionado si no estamos en página de crear orden
+            if (page !== 'create-order' && appState.selectedService) {
+                appState.selectedService = null;
+                console.log('🧹 Servicio seleccionado limpiado al cambiar de página');
+            }
         }
         
         // Ocultar loading
@@ -1489,17 +1495,31 @@ function updateOrdersStats(stats) {
 
 // Ordenar servicio
 function orderService(serviceId) {
-    // Redirigir a la página de crear orden con el servicio preseleccionado
-    switchPage('create-order');
-    
-    // Esperar a que la página se cargue
-    setTimeout(() => {
-        const serviceSelect = document.getElementById('create-service-select');
-        if (serviceSelect) {
-            serviceSelect.value = serviceId;
-            serviceSelect.dispatchEvent(new Event('change'));
-        }
-    }, 100);
+    // Buscar el servicio seleccionado en el estado global
+    const service = appState.services.find(s => s.service === serviceId);
+    if (service) {
+        // Establecer el servicio seleccionado en el estado global
+        appState.selectedService = service;
+
+        // Redirigir a la página de crear orden con el servicio preseleccionado
+        switchPage('create-order');
+
+        // Esperar a que la página se cargue y seleccionar automáticamente el servicio
+        setTimeout(() => {
+            const serviceSelect = document.getElementById('create-service-select');
+            if (serviceSelect) {
+                serviceSelect.value = serviceId;
+
+                // Disparar evento de cambio para mostrar detalles del servicio
+                const event = new Event('change');
+                serviceSelect.dispatchEvent(event);
+
+                console.log('✅ Servicio seleccionado automáticamente:', service.name);
+            }
+        }, 200); // Aumentar tiempo de espera para asegurar que el select esté poblado
+    } else {
+        showToast('Servicio no encontrado', 'error');
+    }
 }
 
 // Ver detalles del servicio
@@ -1566,19 +1586,19 @@ async function checkSyncStatus() {
 // Configurar página de crear orden
 function setupCreateOrderPage() {
     console.log('🛒 Configurando página de crear orden...');
-    
+
     // Verificar estado de sincronización
     checkSyncStatus();
-    
+
     // Poblar el select de servicios
     const serviceSelect = document.getElementById('create-service-select');
     const serviceSearch = document.getElementById('create-service-search');
-    
+
     if (!serviceSelect) return;
-    
+
     // Limpiar opciones existentes
     serviceSelect.innerHTML = '<option value="">Selecciona un servicio</option>';
-    
+
     // Agregar servicios al select
     appState.services.forEach(service => {
         const option = document.createElement('option');
@@ -1587,13 +1607,26 @@ function setupCreateOrderPage() {
         option.dataset.service = JSON.stringify(service);
         serviceSelect.appendChild(option);
     });
-    
+
     console.log(`✅ ${appState.services.length} servicios agregados al select`);
-    
+
+    // Si hay un servicio previamente seleccionado, seleccionarlo automáticamente
+    if (appState.selectedService) {
+        serviceSelect.value = appState.selectedService.service;
+
+        // Disparar evento de cambio para mostrar detalles del servicio
+        setTimeout(() => {
+            const event = new Event('change');
+            serviceSelect.dispatchEvent(event);
+            console.log('✅ Servicio previamente seleccionado restaurado:', appState.selectedService.name);
+        }, 100);
+    }
+
     // Evento de cambio de servicio
     serviceSelect.addEventListener('change', function() {
         const selectedOption = this.options[this.selectedIndex];
         if (!selectedOption.dataset.service) {
+            // Ocultar detalles y formulario si no hay servicio seleccionado
             document.getElementById('service-details').style.display = 'none';
             document.getElementById('create-order-form').style.display = 'none';
             return;
@@ -1603,26 +1636,26 @@ function setupCreateOrderPage() {
         showServiceDetails(service);
         showOrderForm(service);
     });
-    
+
     // Búsqueda de servicios
     if (serviceSearch) {
         serviceSearch.addEventListener('input', function() {
             const searchTerm = this.value.toLowerCase();
             const options = serviceSelect.options;
-            
+
             for (let i = 1; i < options.length; i++) {
                 const text = options[i].textContent.toLowerCase();
                 options[i].style.display = text.includes(searchTerm) ? '' : 'none';
             }
         });
     }
-    
+
     // Evento de submit del formulario
     const form = document.getElementById('create-order-form');
     if (form) {
         form.addEventListener('submit', handleCreateOrderSubmit);
     }
-    
+
     // Evento de cambio de cantidad
     const quantityInput = document.getElementById('create-order-quantity');
     if (quantityInput) {
@@ -1632,12 +1665,46 @@ function setupCreateOrderPage() {
 
 // Mostrar detalles del servicio
 function showServiceDetails(service) {
+    // Actualizar la información en la tarjeta de detalles
     document.getElementById('detail-category').textContent = service.category;
     document.getElementById('detail-type').textContent = service.type || 'Default';
     document.getElementById('detail-rate').textContent = `$${(parseFloat(service.rate) * 1.2).toFixed(4)}`;
     document.getElementById('detail-min').textContent = service.min;
     document.getElementById('detail-max').textContent = service.max;
-    document.getElementById('service-details').style.display = 'block';
+
+    // Actualizar características del servicio
+    const featuresList = document.getElementById('service-features-list');
+    if (featuresList) {
+        featuresList.innerHTML = '';
+
+        // Características básicas
+        const features = [];
+
+        if (service.refill) {
+            features.push('<i class="fas fa-sync"></i> Refill disponible');
+        }
+
+        if (service.cancel) {
+            features.push('<i class="fas fa-times-circle"></i> Cancelable');
+        }
+
+        // Características adicionales
+        features.push('<i class="fas fa-clock"></i> Entrega rápida');
+        features.push('<i class="fas fa-shield-alt"></i> Garantía de calidad');
+
+        features.forEach(feature => {
+            const badge = document.createElement('span');
+            badge.className = 'feature-badge';
+            badge.innerHTML = feature;
+            featuresList.appendChild(badge);
+        });
+    }
+
+    // Mostrar la tarjeta de detalles
+    const serviceDetails = document.getElementById('service-details');
+    if (serviceDetails) {
+        serviceDetails.style.display = 'block';
+    }
 }
 
 // Mostrar formulario de orden
@@ -1645,20 +1712,28 @@ function showOrderForm(service) {
     const form = document.getElementById('create-order-form');
     const quantityInput = document.getElementById('create-order-quantity');
     const quantityRange = document.getElementById('quantity-range');
-    
+
     if (quantityInput) {
         quantityInput.min = service.min;
         quantityInput.max = service.max;
         quantityInput.placeholder = service.min;
         quantityRange.textContent = `Min: ${service.min} | Max: ${service.max}`;
     }
-    
+
     // Actualizar balance en el resumen
     document.getElementById('summary-balance').textContent = `$${appState.balance.toFixed(4)}`;
     document.getElementById('summary-rate').textContent = `$${(parseFloat(service.rate) * 1.2).toFixed(4)}`;
-    
+
     form.style.display = 'block';
     appState.selectedService = service;
+}
+
+// Función para cerrar los detalles del servicio
+function closeServiceDetails() {
+    const serviceDetails = document.getElementById('service-details');
+    if (serviceDetails) {
+        serviceDetails.style.display = 'none';
+    }
 }
 
 // Actualizar resumen de costo
@@ -1748,11 +1823,14 @@ async function handleCreateOrderSubmit(e) {
             // Actualizar balance
             await loadBalance();
             
-            // Limpiar formulario
+            // Limpiar formulario y servicio seleccionado
             document.getElementById('create-order-form').reset();
             document.getElementById('create-service-select').value = '';
             document.getElementById('service-details').style.display = 'none';
             document.getElementById('create-order-form').style.display = 'none';
+            
+            // Limpiar servicio seleccionado del estado global
+            appState.selectedService = null;
             
             // Redirigir a Mis Órdenes
             setTimeout(() => {
