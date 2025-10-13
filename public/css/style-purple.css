@@ -4077,9 +4077,140 @@ body {
     }
 }
 
-/* Animación de entrada para los detalles */
-.service-details.show {
-    animation: slideInUp 0.3s ease-out;
+/* ============================================
+   COST SUMMARY CARD - TARJETA SIMPLE Y ELEGANTE
+   ============================================ */
+
+.cost-summary-card {
+    background: var(--card-background);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-md);
+    border: 1px solid var(--border-light);
+    overflow: hidden;
+    margin-bottom: 1rem;
+    transition: var(--transition);
+}
+
+.cost-summary-card:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-1px);
+}
+
+.cost-summary-header {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    color: var(--text-white);
+    padding: 1rem;
+    text-align: center;
+}
+
+.cost-summary-header h4 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.cost-summary-header h4 i {
+    font-size: 1.125rem;
+}
+
+.cost-summary-body {
+    padding: 1.25rem;
+}
+
+.cost-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.cost-item:last-child {
+    border-bottom: none;
+}
+
+.cost-label {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.cost-value {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.cost-item.total {
+    background: rgba(16, 185, 129, 0.05);
+    margin: 0.5rem -1.25rem -0.75rem;
+    padding: 1rem 1.25rem;
+    border-top: 2px solid var(--success-color);
+    border-bottom: none;
+    border-radius: 0 0 var(--border-radius) var(--border-radius);
+}
+
+.cost-item.total .cost-label {
+    color: var(--success-color);
+    font-size: 1rem;
+}
+
+.cost-item.total .total-amount {
+    color: var(--success-color);
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+.cost-item.balance .cost-value {
+    color: var(--primary-color);
+    font-weight: 700;
+}
+
+.cost-item.remaining .cost-value {
+    color: var(--warning-color);
+    font-weight: 700;
+}
+
+.cost-divider {
+    height: 1px;
+    background: var(--border-color);
+    margin: 0.75rem 0;
+}
+
+/* Responsive para resumen de costo */
+@media (max-width: 768px) {
+    .cost-summary-card {
+        margin: 0 -1rem 1rem -1rem;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+
+    .cost-summary-body {
+        padding: 1rem;
+    }
+
+    .cost-item {
+        padding: 0.625rem 0;
+    }
+
+    .cost-item.total {
+        margin: 0.5rem -1rem -0.625rem;
+        padding: 0.875rem 1rem;
+    }
+}
+
+/* Animación para cuando cambian los valores */
+.cost-value {
+    transition: color 0.3s ease;
+}
+
+.cost-item.total .total-amount {
+    transition: all 0.3s ease;
 }
 
 .settings-container {
