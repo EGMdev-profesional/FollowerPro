@@ -1973,21 +1973,49 @@ function setupCreateOrderEvents() {
     console.log('🎯 Configurando eventos de crear orden...');
     
     const serviceSelect = document.getElementById('create-service-select');
-    const linkInput = document.getElementById('order-link');
-    const quantityInput = document.getElementById('order-quantity');
+    const linkInput = document.getElementById('create-order-link');
+    const quantityInput = document.getElementById('create-order-quantity');
     const createBtn = document.getElementById('create-order-btn');
+    const orderForm = document.getElementById('create-order-form');
+    const serviceDetails = document.getElementById('service-details');
     
     // Evento de cambio de servicio
     if (serviceSelect) {
         serviceSelect.addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
-            if (selectedOption && selectedOption.dataset.service) {
+            
+            if (selectedOption && selectedOption.value && selectedOption.dataset.service) {
                 try {
                     const service = JSON.parse(selectedOption.dataset.service);
+                    
+                    // Mostrar detalles del servicio
+                    if (serviceDetails) {
+                        serviceDetails.style.display = 'block';
+                        showServiceDetails(service);
+                    }
+                    
+                    // Mostrar formulario
+                    if (orderForm) {
+                        orderForm.style.display = 'block';
+                    }
+                    
+                    // Actualizar rango de cantidad
+                    const quantityRange = document.getElementById('quantity-range');
+                    if (quantityRange) {
+                        quantityRange.textContent = `Min: ${service.min} | Max: ${service.max}`;
+                    }
+                    
+                    // Actualizar preview
                     updateOrderPreview(service);
+                    
+                    console.log('✅ Servicio seleccionado:', service.name);
                 } catch (error) {
                     console.error('Error parseando servicio:', error);
                 }
+            } else {
+                // Ocultar formulario si no hay servicio seleccionado
+                if (serviceDetails) serviceDetails.style.display = 'none';
+                if (orderForm) orderForm.style.display = 'none';
             }
         });
     }
@@ -2027,24 +2055,58 @@ function setupCreateOrderEvents() {
 
 // Actualizar preview de la orden
 function updateOrderPreview(service) {
-    const quantityInput = document.getElementById('order-quantity');
+    const quantityInput = document.getElementById('create-order-quantity');
     const quantity = parseInt(quantityInput?.value) || 0;
     
-    if (quantity > 0 && service) {
+    if (service) {
         const rate = parseFloat(service.rate) * 1.25; // Markup del 25%
-        const cost = (quantity / 1000) * rate;
+        const cost = quantity > 0 ? (quantity / 1000) * rate : 0;
         
-        // Actualizar preview si existe
-        const costPreview = document.getElementById('order-cost-preview');
-        if (costPreview) {
-            costPreview.textContent = `$${cost.toFixed(4)}`;
+        // Actualizar resumen de cantidad
+        const summaryQuantity = document.getElementById('summary-quantity');
+        if (summaryQuantity) {
+            summaryQuantity.textContent = quantity || '0';
+        }
+        
+        // Actualizar precio por 1000
+        const summaryRate = document.getElementById('summary-rate');
+        if (summaryRate) {
+            summaryRate.textContent = `$${rate.toFixed(4)}`;
+        }
+        
+        // Actualizar total
+        const summaryTotal = document.getElementById('summary-total');
+        if (summaryTotal) {
+            summaryTotal.textContent = `$${cost.toFixed(4)}`;
+        }
+        
+        // Actualizar balance
+        const summaryBalance = document.getElementById('summary-balance');
+        const summaryRemaining = document.getElementById('summary-remaining');
+        if (summaryBalance && appState.user) {
+            const currentBalance = parseFloat(appState.user.balance) || 0;
+            summaryBalance.textContent = `$${currentBalance.toFixed(4)}`;
+            
+            if (summaryRemaining) {
+                const remaining = currentBalance - cost;
+                summaryRemaining.textContent = `$${remaining.toFixed(4)}`;
+                
+                // Cambiar color si no hay suficiente balance
+                if (remaining < 0) {
+                    summaryRemaining.style.color = '#e74c3c';
+                } else {
+                    summaryRemaining.style.color = '#27ae60';
+                }
+            }
         }
         
         // Validar cantidad
-        if (quantity < service.min) {
-            showToast(`Cantidad mínima: ${service.min}`, 'warning');
-        } else if (quantity > service.max) {
-            showToast(`Cantidad máxima: ${service.max}`, 'warning');
+        if (quantity > 0) {
+            if (quantity < service.min) {
+                showToast(`Cantidad mínima: ${service.min}`, 'warning');
+            } else if (quantity > service.max) {
+                showToast(`Cantidad máxima: ${service.max}`, 'warning');
+            }
         }
     }
 }
