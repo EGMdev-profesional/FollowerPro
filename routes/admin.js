@@ -203,33 +203,6 @@ router.get('/transactions', requireAdmin, async (req, res) => {
     }
 });
 
-// Obtener orden específica por ID
-router.get('/orders/:orderId', requireAdmin, async (req, res) => {
-    try {
-        const { orderId } = req.params;
-
-        const sql = `
-            SELECT o.*, u.nombre, u.email, s.name as service_name, s.category
-            FROM ordenes o
-            LEFT JOIN usuarios u ON o.usuario_id = u.id
-            LEFT JOIN servicios_cache s ON o.service_id = s.service_id
-            WHERE o.id = ?
-        `;
-
-        const orders = await query(sql, [orderId]);
-
-        if (orders.length === 0) {
-            return res.status(404).json({ message: 'Orden no encontrada' });
-        }
-
-        res.json({
-            orders: orders // Mantener el mismo formato que la lista
-        });
-
-    } catch (error) {
-        console.error('Error obteniendo orden:', error);
-        res.status(500).json({ message: 'Error al obtener la orden' });
-    }
 // Obtener todas las órdenes
 router.get('/orders', requireAdmin, async (req, res) => {
     try {
@@ -413,33 +386,6 @@ router.put('/config', requireAdmin, async (req, res) => {
     } catch (error) {
         console.error('Error actualizando configuración:', error);
         res.status(500).json({ message: 'Error al actualizar configuración' });
-    }
-});
-
-// Cancelar orden administrativamente
-router.post('/orders/:orderId/cancel', requireAdmin, async (req, res) => {
-    try {
-        const { orderId } = req.params;
-        const { reason = 'Cancelada por administrador' } = req.body;
-        const adminUserId = req.session.userId;
-
-        console.log(`🔄 Cancelando orden #${orderId} administrativamente...`);
-
-        const result = await Order.adminCancel(parseInt(orderId), adminUserId, reason);
-
-        res.json({
-            message: result.message,
-            order_id: result.orderId,
-            refunded_amount: result.refundedAmount,
-            success: true
-        });
-
-    } catch (error) {
-        console.error('Error cancelando orden administrativamente:', error);
-        res.status(400).json({
-            message: error.message || 'Error al cancelar la orden',
-            success: false
-        });
     }
 });
 
