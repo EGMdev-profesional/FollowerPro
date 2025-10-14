@@ -1984,7 +1984,7 @@ function setupCreateOrderEvents() {
     const serviceSelect = document.getElementById('create-service-select');
     const linkInput = document.getElementById('create-order-link');
     const quantityInput = document.getElementById('create-order-quantity');
-    const createBtn = document.getElementById('create-order-btn');
+    const createBtn = document.getElementById('submit-order-btn'); // Cambiado a submit-order-btn
     const orderForm = document.getElementById('create-order-form');
     const serviceDetails = document.getElementById('service-details');
     
@@ -2045,9 +2045,31 @@ function setupCreateOrderEvents() {
         });
     }
     
-    // Evento de crear orden
+    // Evento de submit del formulario
+    if (orderForm) {
+        orderForm.addEventListener('submit', async function(e) {
+            e.preventDefault(); // Prevenir el submit normal del formulario
+            
+            const serviceId = serviceSelect?.value;
+            const link = linkInput?.value;
+            const quantity = quantityInput?.value;
+            
+            if (!serviceId || !link || !quantity) {
+                showToast('Por favor completa todos los campos', 'error');
+                return;
+            }
+            
+            await createOrder(serviceId);
+        });
+    }
+    
+    // Evento de click del botón (backup)
     if (createBtn) {
-        createBtn.addEventListener('click', async function() {
+        createBtn.addEventListener('click', async function(e) {
+            // Si el formulario existe, dejar que maneje el submit
+            if (orderForm) return;
+            
+            e.preventDefault();
             const serviceId = serviceSelect?.value;
             const link = linkInput?.value;
             const quantity = quantityInput?.value;
@@ -2465,7 +2487,7 @@ async function createOrder(serviceId) {
         return;
     }
     
-    const createBtn = document.getElementById('create-order-btn');
+    const createBtn = document.getElementById('submit-order-btn');
     if (createBtn) {
         createBtn.disabled = true;
         createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando...';
