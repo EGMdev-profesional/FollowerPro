@@ -329,6 +329,8 @@ class Order {
 
             // 2. Reembolsar el monto al usuario
             const refundAmount = parseFloat(order.charge);
+            let newBalance = 0;
+
             if (refundAmount > 0) {
                 // Obtener balance actual del usuario
                 const userResult = await connection.execute(
@@ -341,7 +343,7 @@ class Order {
                 }
 
                 const currentBalance = parseFloat(userResult[0][0].balance);
-                const newBalance = currentBalance + refundAmount;
+                newBalance = currentBalance + refundAmount;
 
                 // Actualizar balance del usuario
                 await connection.execute(
@@ -366,6 +368,16 @@ class Order {
                     ]
                 );
                 console.log(`✅ Transacción de reembolso registrada`);
+            } else {
+                // Si no hay monto para reembolsar, obtener el balance actual para el retorno
+                const userResult = await connection.execute(
+                    'SELECT balance FROM usuarios WHERE id = ?',
+                    [order.usuario_id]
+                );
+
+                if (userResult[0].length > 0) {
+                    newBalance = parseFloat(userResult[0][0].balance);
+                }
             }
 
             // 4. Log de la acción administrativa
@@ -395,8 +407,8 @@ class Order {
             return {
                 orderId,
                 refundedAmount: refundAmount,
-                newBalance: refundAmount > 0 ? currentBalance + refundAmount : currentBalance,
-                message: `Orden cancelada y $${refundAmount.toFixed(4)} reembolsados al usuario`
+                newBalance: newBalance,
+                message: `Orden cancelada${refundAmount > 0 ? ` y $${refundAmount.toFixed(4)} reembolsados al usuario` : ''}`
             };
 
         } catch (error) {

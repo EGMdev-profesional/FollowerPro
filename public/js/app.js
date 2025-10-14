@@ -3019,37 +3019,53 @@ function renderAdminOrders(orders) {
 
 // Cancelar orden administrativamente
 async function adminCancelOrder(orderId) {
-    // Obtener información de la orden para mostrar detalles en la confirmación
-    const orders = await fetch('/api/admin/orders');
-    const data = await orders.json();
-    const order = data.orders.find(o => o.id === orderId);
-    
-    if (!order) {
-        showToast('Orden no encontrada', 'error');
-        return;
-    }
+    // Buscar información de la orden en el estado actual o hacer una llamada directa
+    try {
+        const response = await fetch(`/api/admin/orders/${orderId}`);
+        if (!response.ok) {
+            showToast('Error al obtener información de la orden', 'error');
+            return;
+        }
 
-    const confirmMessage = `¿Estás seguro de que quieres cancelar esta orden?
+        const orderData = await response.json();
+        const order = orderData.orders?.[0] || orderData.order;
+
+        if (!order) {
+            showToast('Orden no encontrada', 'error');
+            return;
+        }
+
+        const confirmMessage = `¿Estás seguro de que quieres cancelar esta orden?
 
 Detalles de la orden:
 - ID: #${order.id}
 - Usuario: ${order.nombre || 'N/A'}
 - Servicio: ${order.service_name || 'N/A'}
 - Cantidad: ${order.quantity}
-- Costo: $${parseFloat(order.charge).toFixed(2)}
+- Costo: $${parseFloat(order.charge || 0).toFixed(2)}
 - Estado actual: ${order.status}
 
 Esta acción:
 ✅ Cancelará la orden
-💰 Reembolsará $${parseFloat(order.charge).toFixed(2)} al usuario
+💰 Reembolsará $${parseFloat(order.charge || 0).toFixed(2)} al usuario
 📝 Se registrará en el historial de transacciones
 
 ¿Continuar?`;
 
-    if (!confirm(confirmMessage)) {
-        return;
-    }
+        if (!confirm(confirmMessage)) {
+            return;
+        }
 
+        await performOrderCancellation(orderId);
+
+    } catch (error) {
+        console.error('Error obteniendo información de la orden:', error);
+        showToast('Error al obtener información de la orden', 'error');
+    }
+}
+
+// Función auxiliar para realizar la cancelación
+async function performOrderCancellation(orderId) {
     try {
         showLoading(true);
         console.log(`🔄 Cancelando orden #${orderId} administrativamente...`);
@@ -3068,20 +3084,15 @@ Esta acción:
 
         if (response.ok) {
             showToast(`✅ ${result.message}`, 'success');
-            
+
             // Recargar órdenes para ver el cambio
             await loadAdminOrders();
-            
-            // También recargar usuarios para actualizar balances si es necesario
-            if (document.getElementById('admin-users-tab').style.display !== 'none') {
-                await loadAdminUsers();
+
+            // También recargar estadísticas de admin si están visibles
+            if (document.getElementById('admin-page').style.display !== 'none') {
+                await loadAdminStats();
             }
-            
-            // Recargar transacciones para mostrar el reembolso
-            if (document.getElementById('admin-transactions-tab').style.display !== 'none') {
-                await loadAdminTransactions();
-            }
-            
+
         } else {
             showToast(`❌ ${result.message}`, 'error');
         }
@@ -3229,10 +3240,12 @@ function switchAdminTab(tab) {
     // Cargar datos según la pestaña
     switch(tab) {
         case 'users':
-            loadAdminUsers();
+            // Esta función no está definida en este archivo
+            console.warn('Función loadAdminUsers no disponible');
             break;
         case 'transactions':
-            loadAdminTransactions();
+            // Esta función no está definida en este archivo
+            console.warn('Función loadAdminTransactions no disponible');
             break;
         case 'orders':
             loadAdminOrders();
