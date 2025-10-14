@@ -3072,6 +3072,83 @@ async function processPendingOrders() {
     }
 }
 
+// Cancelar órdenes pendientes y reembolsar
+async function cancelPendingOrders() {
+    try {
+        // Confirmar acción
+        if (!confirm('⚠️ ATENCIÓN: ¿Estás seguro de que quieres CANCELAR todas las órdenes pendientes?\n\nEsta acción:\n✅ Cancelará todas las órdenes pendientes\n✅ Devolverá el dinero a los usuarios\n✅ No se puede deshacer\n\n¿Deseas continuar?')) {
+            return;
+        }
+        
+        console.log('🔄 Iniciando cancelación de órdenes pendientes...');
+        showLoading(true);
+        
+        const response = await fetch('/api/admin/orders/cancel-pending', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+        
+        if (!response.ok) {
+            throw new Error('Error al cancelar órdenes');
+        }
+        
+        const result = await response.json();
+        console.log('📊 Resultado:', result);
+        
+        // Mostrar resultado detallado
+        let message = result.message;
+        
+        if (result.total > 0) {
+            message += `\n\n✅ Canceladas: ${result.canceled}\n💰 Total Reembolsado: $${result.total_refunded}\n📊 Total Procesadas: ${result.total}`;
+            
+            // Mostrar detalles de órdenes canceladas
+            if (result.canceled > 0 && result.results) {
+                const successOrders = result.results.filter(r => r.status === 'success');
+                if (successOrders.length > 0 && successOrders.length <= 10) {
+                    message += '\n\n✅ Órdenes canceladas:';
+                    successOrders.forEach(order => {
+                        message += `\n  - Orden #${order.id}: $${order.refund_amount} → ${order.user_email}`;
+                    });
+                }
+            }
+            
+            // Mostrar errores si hay
+            if (result.results) {
+                const failedOrders = result.results.filter(r => r.status === 'failed');
+                if (failedOrders.length > 0) {
+                    message += '\n\n❌ Órdenes con error:';
+                    failedOrders.forEach(order => {
+                        message += `\n  - Orden #${order.id}: ${order.error}`;
+                    });
+                }
+            }
+        }
+        
+        alert(message);
+        
+        // Recargar órdenes y estadísticas para ver cambios
+        await loadAdminOrders();
+        await loadAdminStats();
+        
+        // Mostrar toast
+        if (result.canceled > 0) {
+            showToast(`${result.canceled} órdenes canceladas y $${result.total_refunded} reembolsado`, 'success');
+        } else if (result.total === 0) {
+            showToast('No hay órdenes pendientes para cancelar', 'info');
+        } else {
+            showToast('No se pudieron cancelar las órdenes', 'error');
+        }
+        
+    } catch (error) {
+        console.error('❌ Error cancelando órdenes:', error);
+        showToast('Error al cancelar órdenes: ' + error.message, 'error');
+    } finally {
+        showLoading(false);
+    }
+}
+
 // ============================================
 // CONFIGURACIÓN (ADMIN)
 // ============================================

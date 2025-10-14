@@ -355,6 +355,147 @@ router.post('/orders/process-pending', requireAdmin, async (req, res) => {
     }
 });
 
+// Cancelar órdenes pendientes y reembolsar dinero
+router.post('/orders/cancel-pending', requireAdmin, async (req, res) => {
+    try {
+        console.log('🔄 Cancelando órdenes pendientes...');
+        
+        // Obtener órdenes pendientes que no se enviaron a la API
+        const pendingOrders = await query(`
+            SELECT o.*, u.nombre, u.email, u.balance
+            FROM ordenes o
+            LEFT JOIN usuarios u ON o.usuario_id = u.id
+            WHERE o.status = 'Pending' 
+            AND (o.order_id LIKE 'ORD-%' OR o.order_id IS NULL)
+            ORDER BY o.fecha_creacion ASC
+        `);
+        
+        if (pendingOrders.length === 0) {
+            return res.json({
+                message: 'No hay órdenes pendientes para cancelar',
+                canceled: 0,
+                refunded: 0,
+                total: 0
+            });
+        }
+        
+        console.log(`📊 Encontradas ${pendingOrders.length} órdenes pendientes para cancelar`);
+        
+        let canceled = 0;
+        let refunded = 0;
+        let totalRefunded = 0;
+        const results = [];
+        
+        // Obtener conexión para transacciones
+        const { getConnection } = require('../config/database');
+        const pool = getConnection();
+        
+        // Procesar cada orden
+        for (const order of pendingOrders) {
+            const connection = await pool.getConnection();
+            
+            try {
+                await connection.beginTransaction();
+                console.log(`🔄 Cancelando orden #${order.id}...`);
+                
+                // 1. Actualizar estado de la orden a Canceled
+                await connection.execute(
+                    'UPDATE ordenes SET status = ?, notas = ?, fecha_actualizacion = NOW() WHERE id = ?',
+                    ['Canceled', 'Cancelada por administrador - Reembolso procesado', order.id]
+                );
+                
+                // 2. Devolver el dinero al usuario
+                const nuevoBalance = parseFloat(order.balance) + parseFloat(order.charge);
+                await connection.execute(
+                    'UPDATE usuarios SET balance = ? WHERE id = ?',
+                    [nuevoBalance, order.usuario_id]
+                );
+                
+                // 3. Registrar transacción de reembolso
+                await connection.execute(
+                    `INSERT INTO transacciones 
+                    (usuario_id, tipo, monto, balance_anterior, balance_nuevo, descripcion, orden_id, estado, procesada_por)
+                    VALUES (?, 'refund', ?, ?, ?, ?, ?, 'completada', ?)`,
+                    [
+                        order.usuario_id,
+                        order.charge,
+                        order.balance,
+                        nuevoBalance,
+                        `Reembolso por cancelación de orden #${order.id}`,
+                        order.id,
+                        req.session.userId
+                    ]
+                );
+                
+                // 4. Registrar en logs del sistema
+                await connection.execute(
+                    `INSERT INTO logs_sistema 
+                    (usuario_id, accion, descripcion, nivel, datos_adicionales)
+                    VALUES (?, 'order_canceled', ?, 'info', ?)`,
+                    [
+                        order.usuario_id,
+                        `Orden #${order.id} cancelada por administrador con reembolso de $${order.charge}`,
+                        JSON.stringify({
+                            order_id: order.id,
+                            refund_amount: order.charge,
+                            admin_id: req.session.userId,
+                            previous_balance: order.balance,
+                            new_balance: nuevoBalance
+                        })
+                    ]
+                );
+                
+                await connection.commit();
+                
+                canceled++;
+                refunded++;
+                totalRefunded += parseFloat(order.charge);
+                
+                results.push({
+                    id: order.id,
+                    status: 'success',
+                    refund_amount: order.charge,
+                    user_email: order.email
+                });
+                
+                console.log(`✅ Orden #${order.id} cancelada y reembolsada: $${order.charge} a ${order.email}`);
+                
+            } catch (error) {
+                await connection.rollback();
+                
+                results.push({
+                    id: order.id,
+                    status: 'failed',
+                    error: error.message
+                });
+                
+                console.error(`❌ Error cancelando orden #${order.id}:`, error.message);
+                
+            } finally {
+                connection.release();
+            }
+        }
+        
+        console.log(`✅ Proceso completado: ${canceled} órdenes canceladas, $${totalRefunded.toFixed(4)} reembolsado`);
+        
+        res.json({
+            message: `${canceled} órdenes canceladas y reembolsadas exitosamente`,
+            canceled,
+            refunded,
+            total_refunded: totalRefunded.toFixed(4),
+            total: pendingOrders.length,
+            results
+        });
+        
+    } catch (error) {
+        console.error('Error cancelando órdenes pendientes:', error);
+        res.status(500).json({ 
+            message: 'Error al cancelar órdenes pendientes',
+            error: error.message 
+        });
+    }
+});
+
 // Obtener configuración del sistema
 router.get('/config', requireAdmin, async (req, res) => {
     try {
