@@ -1297,6 +1297,17 @@ function requestRecharge() {
 
 // === FUNCIONES DE SERVICIOS ===
 
+// Configurar página de servicios
+function setupServicesPage() {
+    console.log('🛍️ Configurando página de servicios...');
+    
+    // Configurar eventos de filtros
+    setupServicesEvents();
+    
+    // Renderizar servicios
+    renderServices();
+}
+
 // Configurar eventos de la página de servicios
 function setupServicesEvents() {
     const searchInput = document.getElementById('services-search');
@@ -1907,6 +1918,53 @@ function showServicesErrorState() {
         `;
         form.parentNode.insertBefore(errorDiv, form);
     }
+}
+
+// Poblar select de servicios de forma optimizada
+function populateServiceSelectOptimized() {
+    const serviceSelect = document.getElementById('create-service-select');
+    if (!serviceSelect) return;
+    
+    console.log('📋 Poblando select de servicios...');
+    
+    // Limpiar select
+    serviceSelect.innerHTML = '<option value="">Selecciona un servicio</option>';
+    
+    // Verificar si hay servicios
+    if (!appState.services || appState.services.length === 0) {
+        serviceSelect.innerHTML = '<option value="">No hay servicios disponibles</option>';
+        serviceSelect.disabled = true;
+        return;
+    }
+    
+    // Agrupar servicios por categoría
+    const servicesByCategory = {};
+    appState.services.forEach(service => {
+        const category = service.category || 'Otros';
+        if (!servicesByCategory[category]) {
+            servicesByCategory[category] = [];
+        }
+        servicesByCategory[category].push(service);
+    });
+    
+    // Crear opciones agrupadas por categoría
+    Object.keys(servicesByCategory).sort().forEach(category => {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = category;
+        
+        servicesByCategory[category].forEach(service => {
+            const option = document.createElement('option');
+            option.value = service.service;
+            option.textContent = `${service.name} - $${(parseFloat(service.rate) * 1.25).toFixed(4)}/1k`;
+            option.dataset.service = JSON.stringify(service);
+            optgroup.appendChild(option);
+        });
+        
+        serviceSelect.appendChild(optgroup);
+    });
+    
+    serviceSelect.disabled = false;
+    console.log(`✅ ${appState.services.length} servicios cargados en el select`);
 }
 
 // Mostrar detalles del servicio
