@@ -1730,28 +1730,19 @@ function updateOrdersStats(stats) {
 
 // Ordenar servicio
 function orderService(serviceId) {
+    console.log('🛒 Ordenando servicio:', serviceId);
+    
     // Buscar el servicio seleccionado en el estado global
     const service = appState.services.find(s => s.service === serviceId);
     if (service) {
         // Establecer el servicio seleccionado en el estado global
+        appState.selectedServiceId = serviceId;
         appState.selectedService = service;
 
-        // Redirigir a la página de crear orden con el servicio preseleccionado
+        console.log('✅ Servicio guardado en appState:', service.name);
+
+        // Redirigir a la página de crear orden
         switchPage('create-order');
-
-        // Esperar a que la página se cargue y seleccionar automáticamente el servicio
-        setTimeout(() => {
-            const serviceSelect = document.getElementById('create-service-select');
-            if (serviceSelect) {
-                serviceSelect.value = serviceId;
-
-                // Disparar evento de cambio para mostrar detalles del servicio
-                const event = new Event('change');
-                serviceSelect.dispatchEvent(event);
-
-                console.log('✅ Servicio seleccionado automáticamente:', service.name);
-            }
-        }, 200); // Aumentar tiempo de espera para asegurar que el select esté poblado
     } else {
         showToast('Servicio no encontrado', 'error');
     }
@@ -1965,6 +1956,97 @@ function populateServiceSelectOptimized() {
     
     serviceSelect.disabled = false;
     console.log(`✅ ${appState.services.length} servicios cargados en el select`);
+    
+    // Si hay un servicio pre-seleccionado en appState, seleccionarlo
+    if (appState.selectedServiceId) {
+        serviceSelect.value = appState.selectedServiceId;
+        // Trigger change event para actualizar detalles
+        const event = new Event('change');
+        serviceSelect.dispatchEvent(event);
+        // Limpiar selección
+        appState.selectedServiceId = null;
+    }
+}
+
+// Configurar eventos de crear orden
+function setupCreateOrderEvents() {
+    console.log('🎯 Configurando eventos de crear orden...');
+    
+    const serviceSelect = document.getElementById('create-service-select');
+    const linkInput = document.getElementById('order-link');
+    const quantityInput = document.getElementById('order-quantity');
+    const createBtn = document.getElementById('create-order-btn');
+    
+    // Evento de cambio de servicio
+    if (serviceSelect) {
+        serviceSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption && selectedOption.dataset.service) {
+                try {
+                    const service = JSON.parse(selectedOption.dataset.service);
+                    updateOrderPreview(service);
+                } catch (error) {
+                    console.error('Error parseando servicio:', error);
+                }
+            }
+        });
+    }
+    
+    // Evento de cambio de cantidad
+    if (quantityInput) {
+        quantityInput.addEventListener('input', function() {
+            const serviceSelect = document.getElementById('create-service-select');
+            const selectedOption = serviceSelect?.options[serviceSelect.selectedIndex];
+            if (selectedOption && selectedOption.dataset.service) {
+                try {
+                    const service = JSON.parse(selectedOption.dataset.service);
+                    updateOrderPreview(service);
+                } catch (error) {
+                    console.error('Error actualizando preview:', error);
+                }
+            }
+        });
+    }
+    
+    // Evento de crear orden
+    if (createBtn) {
+        createBtn.addEventListener('click', async function() {
+            const serviceId = serviceSelect?.value;
+            const link = linkInput?.value;
+            const quantity = quantityInput?.value;
+            
+            if (!serviceId || !link || !quantity) {
+                showToast('Por favor completa todos los campos', 'error');
+                return;
+            }
+            
+            await createOrder(serviceId);
+        });
+    }
+}
+
+// Actualizar preview de la orden
+function updateOrderPreview(service) {
+    const quantityInput = document.getElementById('order-quantity');
+    const quantity = parseInt(quantityInput?.value) || 0;
+    
+    if (quantity > 0 && service) {
+        const rate = parseFloat(service.rate) * 1.25; // Markup del 25%
+        const cost = (quantity / 1000) * rate;
+        
+        // Actualizar preview si existe
+        const costPreview = document.getElementById('order-cost-preview');
+        if (costPreview) {
+            costPreview.textContent = `$${cost.toFixed(4)}`;
+        }
+        
+        // Validar cantidad
+        if (quantity < service.min) {
+            showToast(`Cantidad mínima: ${service.min}`, 'warning');
+        } else if (quantity > service.max) {
+            showToast(`Cantidad máxima: ${service.max}`, 'warning');
+        }
+    }
 }
 
 // Mostrar detalles del servicio
@@ -3134,7 +3216,7 @@ async function processPendingOrders() {
 async function cancelPendingOrders() {
     try {
         // Confirmar acción
-        if (!confirm('⚠️ ATENCIÓN: ¿Estás seguro de que quieres CANCELAR todas las órdenes pendientes?\n\nEsta acción:\n✅ Cancelará todas las órdenes pendientes\n✅ Devolverá el dinero a los usuarios\n✅ No se puede deshacer\n\n¿Deseas continuar?')) {
+        if (!confirm('⚠️ ATENCIÓN: ¿Estás seguro de que quieres CANCELAR todas las órdenes pendientes?\n\nEsta acción:\n✅ Cancelará TODAS las órdenes con estado "Pending"\n✅ Incluye órdenes con ID externo que no se procesaron\n✅ Devolverá el dinero a los usuarios\n✅ No se puede deshacer\n\n¿Deseas continuar?')) {
             return;
         }
         
