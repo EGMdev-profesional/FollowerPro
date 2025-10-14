@@ -1959,12 +1959,21 @@ function populateServiceSelectOptimized() {
     
     // Si hay un servicio pre-seleccionado en appState, seleccionarlo
     if (appState.selectedServiceId) {
-        serviceSelect.value = appState.selectedServiceId;
-        // Trigger change event para actualizar detalles
-        const event = new Event('change');
-        serviceSelect.dispatchEvent(event);
-        // Limpiar selección
-        appState.selectedServiceId = null;
+        console.log('🎯 Pre-seleccionando servicio:', appState.selectedServiceId);
+        
+        // Usar setTimeout para asegurar que los event listeners estén configurados
+        setTimeout(() => {
+            serviceSelect.value = appState.selectedServiceId;
+            
+            // Trigger change event para actualizar detalles
+            const event = new Event('change', { bubbles: true });
+            serviceSelect.dispatchEvent(event);
+            
+            console.log('✅ Servicio pre-seleccionado y evento disparado');
+            
+            // Limpiar selección
+            appState.selectedServiceId = null;
+        }, 100);
     }
 }
 
