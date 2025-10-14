@@ -3459,8 +3459,8 @@ function switchAdminTab(tab) {
     }
 }
 
-// Exponer funcion globalmente
-window.contactWhatsApp = contactWhatsApp;
+// Exponer funciones globalmente
+// window.contactWhatsApp = contactWhatsApp; // Función no definida - comentada temporalmente
 window.switchPage = switchPage;
 window.selectAmount = selectAmount;
 window.requestRecharge = requestRecharge;
