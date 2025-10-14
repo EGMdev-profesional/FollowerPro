@@ -360,6 +360,20 @@ router.post('/orders/cancel-pending', requireAdmin, async (req, res) => {
     try {
         console.log('🔄 Cancelando órdenes pendientes...');
         
+        // Primero, obtener TODAS las órdenes pendientes para debug
+        const allPendingOrders = await query(`
+            SELECT o.id, o.order_id, o.status, o.charge, u.email
+            FROM ordenes o
+            LEFT JOIN usuarios u ON o.usuario_id = u.id
+            WHERE o.status = 'Pending'
+            ORDER BY o.fecha_creacion ASC
+        `);
+        
+        console.log(`📊 Total de órdenes con status Pending: ${allPendingOrders.length}`);
+        allPendingOrders.forEach(order => {
+            console.log(`  - Orden #${order.id}: order_id="${order.order_id}", charge=$${order.charge}, user=${order.email}`);
+        });
+        
         // Obtener órdenes pendientes que no se enviaron a la API
         const pendingOrders = await query(`
             SELECT o.*, u.nombre, u.email, u.balance
@@ -370,12 +384,22 @@ router.post('/orders/cancel-pending', requireAdmin, async (req, res) => {
             ORDER BY o.fecha_creacion ASC
         `);
         
+        console.log(`📊 Órdenes pendientes que se pueden cancelar: ${pendingOrders.length}`);
+        
         if (pendingOrders.length === 0) {
             return res.json({
                 message: 'No hay órdenes pendientes para cancelar',
                 canceled: 0,
                 refunded: 0,
-                total: 0
+                total: 0,
+                debug: {
+                    total_pending: allPendingOrders.length,
+                    orders: allPendingOrders.map(o => ({
+                        id: o.id,
+                        order_id: o.order_id,
+                        reason: o.order_id && !o.order_id.startsWith('ORD-') ? 'Ya tiene order_id externo' : 'Cumple criterios'
+                    }))
+                }
             });
         }
         

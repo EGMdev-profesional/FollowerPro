@@ -3136,6 +3136,14 @@ async function cancelPendingOrders() {
         if (result.canceled > 0) {
             showToast(`${result.canceled} órdenes canceladas y $${result.total_refunded} reembolsado`, 'success');
         } else if (result.total === 0) {
+            // Mostrar información de debug si está disponible
+            if (result.debug && result.debug.total_pending > 0) {
+                let debugMsg = `Hay ${result.debug.total_pending} orden(es) pendiente(s), pero no se pueden cancelar:\n\n`;
+                result.debug.orders.forEach(order => {
+                    debugMsg += `Orden #${order.id}: ${order.order_id || 'Sin ID'} - ${order.reason}\n`;
+                });
+                alert(debugMsg);
+            }
             showToast('No hay órdenes pendientes para cancelar', 'info');
         } else {
             showToast('No se pudieron cancelar las órdenes', 'error');
