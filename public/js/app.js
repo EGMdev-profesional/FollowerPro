@@ -1,4 +1,4 @@
-// Estado global de la aplicación
+// Estado global optimizado para rendimiento
 let appState = {
     services: [],
     allServices: [],
@@ -9,8 +9,88 @@ let appState = {
     currentPage: 'dashboard',
     rechargeAmount: 0,
     favoriteServices: JSON.parse(localStorage.getItem('favoriteServices') || '[]'),
-    showingFavorites: false
+    showingFavorites: false,
+
+    // Nuevas propiedades para optimización
+    servicesLoaded: false,
+    servicesLoading: false,
+    servicesCache: new Map(),
+    searchIndex: null,
+    servicesPerPage: 50,
+    currentPageIndex: 0
 };
+
+// Índice de búsqueda optimizado para servicios
+class ServiceSearchIndex {
+    constructor(services) {
+        this.services = services;
+        this.nameIndex = new Map();
+        this.categoryIndex = new Map();
+        this.typeIndex = new Map();
+        this.buildIndexes();
+    }
+
+    buildIndexes() {
+        console.log('🔍 Construyendo índices de búsqueda...');
+
+        this.services.forEach(service => {
+            // Índice por nombre
+            const nameWords = service.name.toLowerCase().split(' ');
+            nameWords.forEach(word => {
+                if (!this.nameIndex.has(word)) {
+                    this.nameIndex.set(word, []);
+                }
+                this.nameIndex.get(word).push(service);
+            });
+
+            // Índice por categoría
+            if (!this.categoryIndex.has(service.category)) {
+                this.categoryIndex.set(service.category, []);
+            }
+            this.categoryIndex.get(service.category).push(service);
+
+            // Índice por tipo
+            if (!this.typeIndex.has(service.type)) {
+                this.typeIndex.set(service.type, []);
+            }
+            this.typeIndex.get(service.type).push(service);
+        });
+
+        console.log('✅ Índices construidos');
+    }
+
+    search(query) {
+        if (!query || query.length < 2) return this.services;
+
+        const queryLower = query.toLowerCase();
+        const results = new Set();
+
+        // Buscar en índice de nombres
+        const nameWords = queryLower.split(' ');
+        nameWords.forEach(word => {
+            if (this.nameIndex.has(word)) {
+                this.nameIndex.get(word).forEach(service => results.add(service));
+            }
+        });
+
+        // Buscar en categorías y tipos
+        Object.keys(this.categoryIndex).forEach(category => {
+            if (category.toLowerCase().includes(queryLower)) {
+                this.categoryIndex.get(category).forEach(service => results.add(service));
+            }
+        });
+
+        return Array.from(results);
+    }
+
+    filterByCategory(category) {
+        return category ? this.categoryIndex.get(category) || [] : this.services;
+    }
+
+    filterByType(type) {
+        return type ? this.typeIndex.get(type) || [] : this.services;
+    }
+}
 
 // Inicialización de la aplicación
 document.addEventListener('DOMContentLoaded', function() {
@@ -262,8 +342,7 @@ async function loadPageData(page) {
             if (appState.services.length === 0) {
                 loadServicesInBackground();
             }
-            await renderServices();
-            setupServicesEvents();
+            setupServicesPage();
             break;
         case 'create-order':
             setupCreateOrderPage();
@@ -454,40 +533,68 @@ function getExampleServices() {
     ];
 }
 
-// Cargar servicios
+// Cargar servicios optimizados
 async function loadServices() {
+    if (appState.servicesLoading) return; // Evitar cargas duplicadas
+
     try {
+        appState.servicesLoading = true;
         console.log('📡 Cargando servicios desde API...');
+
+        const cacheKey = 'services_data';
+        const cachedData = appState.servicesCache.get(cacheKey);
+
+        // Verificar cache (válido por 5 minutos)
+        if (cachedData && (Date.now() - cachedData.timestamp) < 300000) {
+            console.log('✅ Servicios cargados desde cache');
+            appState.services = cachedData.services;
+            appState.servicesLoaded = true;
+            appState.searchIndex = new ServiceSearchIndex(appState.services);
+            return cachedData.services;
+        }
+
         const servicesData = await apiCall('/api/services');
-        
+
         if (!servicesData || !Array.isArray(servicesData)) {
             throw new Error('Respuesta inválida de la API');
         }
-        
-        appState.services = servicesData;
-        console.log(`✅ ${servicesData.length} servicios cargados y sincronizados`);
 
-        // Actualizar selector de servicios
-        updateServiceSelect();
+        appState.services = servicesData;
+        appState.servicesLoaded = true;
+
+        // Crear índice de búsqueda
+        appState.searchIndex = new ServiceSearchIndex(servicesData);
+
+        // Cachear resultados
+        appState.servicesCache.set(cacheKey, {
+            services: servicesData,
+            timestamp: Date.now()
+        });
+
+        console.log(`✅ ${servicesData.length} servicios cargados y optimizados`);
 
         return servicesData;
     } catch (error) {
         console.error('❌ Error al cargar servicios:', error.message);
-        
+
         // Intentar cargar desde BD local como fallback
         try {
             const localServices = await apiCall('/api/services/local');
             if (localServices && Array.isArray(localServices)) {
                 appState.services = localServices;
+                appState.servicesLoaded = true;
+                appState.searchIndex = new ServiceSearchIndex(localServices);
                 console.log(`✅ ${localServices.length} servicios cargados desde BD local`);
                 return localServices;
             }
         } catch (localError) {
             console.error('❌ Error cargando servicios locales:', localError.message);
         }
-        
+
         showToast('Error al cargar servicios. Por favor recarga la página.', 'error');
         throw error;
+    } finally {
+        appState.servicesLoading = false;
     }
 }
 
@@ -509,13 +616,23 @@ function updateServiceSelect() {
     });
 }
 
-// Renderizar servicios
+// Renderizar servicios con paginación virtual
 function renderServices() {
     const servicesGrid = document.getElementById('services-grid');
     if (!servicesGrid) return;
-    
-    servicesGrid.innerHTML = '';
-    
+
+    // Mostrar indicador de carga si no hay servicios
+    if (appState.services.length === 0 && !appState.servicesLoaded) {
+        servicesGrid.innerHTML = `
+            <div class="loading-services">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Cargando servicios optimizados...</p>
+            </div>
+        `;
+        return;
+    }
+
+    // Si no hay servicios, mostrar mensaje
     if (appState.services.length === 0) {
         servicesGrid.innerHTML = `
             <div class="col-span-full text-center py-8">
@@ -525,18 +642,89 @@ function renderServices() {
         `;
         return;
     }
-    
-    appState.services.forEach(service => {
-        const serviceCard = createServiceCard(service);
-        servicesGrid.appendChild(serviceCard);
-    });
+
+    // Aplicar filtros si hay servicios cargados
+    if (appState.servicesLoaded && appState.searchIndex) {
+        applyFiltersAndRender();
+    } else {
+        // Servicios cargando
+        servicesGrid.innerHTML = `
+            <div class="loading-services">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Procesando ${appState.services.length} servicios...</p>
+            </div>
+        `;
+    }
 }
 
-// Crear tarjeta de servicio
-function createServiceCard(service) {
+// Aplicar filtros y renderizar con paginación
+function applyFiltersAndRender() {
+    const searchTerm = document.getElementById('services-search')?.value || '';
+    const categoryFilter = document.getElementById('category-filter')?.value || '';
+    const typeFilter = document.getElementById('type-filter')?.value || '';
+
+    let filteredServices = appState.services;
+
+    // Aplicar filtros usando el índice optimizado
+    if (searchTerm) {
+        filteredServices = appState.searchIndex.search(searchTerm);
+    }
+
+    if (categoryFilter) {
+        filteredServices = filteredServices.filter(s => s.category === categoryFilter);
+    }
+
+    if (typeFilter) {
+        filteredServices = filteredServices.filter(s => s.type === typeFilter);
+    }
+
+    appState.filteredServices = filteredServices;
+    renderFilteredServices();
+}
+
+// Renderizar servicios filtrados con paginación
+function renderFilteredServices() {
+    const servicesGrid = document.getElementById('services-grid');
+    if (!servicesGrid) return;
+
+    const totalServices = appState.filteredServices.length;
+    const startIndex = appState.currentPageIndex * appState.servicesPerPage;
+    const endIndex = Math.min(startIndex + appState.servicesPerPage, totalServices);
+
+    // Crear tarjetas solo para la página actual
+    const servicesToShow = appState.filteredServices.slice(startIndex, endIndex);
+
+    servicesGrid.innerHTML = '';
+
+    if (servicesToShow.length === 0) {
+        servicesGrid.innerHTML = `
+            <div class="col-span-full text-center py-8">
+                <i class="fas fa-search text-4xl text-gray-400 mb-4"></i>
+                <p class="text-gray-500">No se encontraron servicios con los filtros aplicados</p>
+            </div>
+        `;
+        return;
+    }
+
+    // Crear tarjetas de servicios usando DocumentFragment para mejor rendimiento
+    const fragment = document.createDocumentFragment();
+
+    servicesToShow.forEach(service => {
+        const serviceCard = createServiceCardOptimized(service);
+        fragment.appendChild(serviceCard);
+    });
+
+    servicesGrid.appendChild(fragment);
+
+    // Actualizar estadísticas
+    updateServicesStats(totalServices, servicesToShow.length);
+}
+
+// Crear tarjeta de servicio optimizada
+function createServiceCardOptimized(service) {
     const card = document.createElement('div');
     card.className = 'service-card';
-    
+
     card.innerHTML = `
         <div class="service-header">
             <div class="service-name">${service.name}</div>
@@ -554,8 +742,17 @@ function createServiceCard(service) {
         </div>
         <div class="service-price">$${service.rate} por 1000</div>
     `;
-    
+
     return card;
+}
+
+// Actualizar estadísticas de servicios
+function updateServicesStats(total, filtered) {
+    const totalEl = document.getElementById('total-services');
+    const filteredEl = document.getElementById('filtered-services');
+
+    if (totalEl) totalEl.textContent = total;
+    if (filteredEl) filteredEl.textContent = filtered;
 }
 
 // Manejar cambio de servicio
@@ -934,20 +1131,47 @@ async function refreshData() {
     }
 }
 
-// Función para contactar por WhatsApp
-function contactWhatsApp(plan = '') {
-    let message = '¡Hola! Me interesa obtener un panel SMM personalizado como este. ¿Podrían darme más información sobre precios y características?';
-    
-    if (plan) {
-        message = `¡Hola! Me interesa el ${plan}. ¿Podrían darme más información sobre precios y características?`;
+// Limpiar cache de servicios (para desarrollo)
+function clearServicesCache() {
+    appState.servicesCache.clear();
+    appState.searchIndex = null;
+    console.log('🧹 Cache de servicios limpiado');
+}
+
+// Reintentar carga de servicios
+function retryLoadServices() {
+    console.log('🔄 Reintentando carga de servicios...');
+
+    // Limpiar estados de error
+    hideServicesLoadingState();
+    const errorIndicator = document.getElementById('services-error-indicator');
+    if (errorIndicator) {
+        errorIndicator.remove();
     }
-    
-    // Número de WhatsApp actualizado
-    const phoneNumber = '5491138520755'; // +54 9 11 3852-0755
-    const encodedMessage = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
-    
-    window.open(whatsappUrl, '_blank');
+
+    // Forzar recarga completa
+    appState.servicesLoaded = false;
+    appState.services = [];
+    appState.servicesCache.clear();
+    appState.searchIndex = null;
+
+    // Recargar servicios
+    setupCreateOrderPage();
+}
+
+// Validar servicios antes de crear orden
+function validateServicesBeforeOrder() {
+    if (!appState.servicesLoaded || appState.services.length === 0) {
+        showToast('Los servicios aún se están cargando. Por favor espera un momento.', 'warning');
+        return false;
+    }
+
+    if (appState.services.length < 100) { // Umbral mínimo de servicios
+        showToast('No se pudieron cargar todos los servicios necesarios. Por favor recarga la página.', 'error');
+        return false;
+    }
+
+    return true;
 }
 
 // === FUNCIONES DE RECARGA ===
@@ -1583,83 +1807,105 @@ async function checkSyncStatus() {
     }
 }
 
-// Configurar página de crear orden
+// Configurar página de crear orden optimizada
 function setupCreateOrderPage() {
     console.log('🛒 Configurando página de crear orden...');
 
     // Verificar estado de sincronización
     checkSyncStatus();
 
-    // Poblar el select de servicios
-    const serviceSelect = document.getElementById('create-service-select');
-    const serviceSearch = document.getElementById('create-service-search');
-
-    if (!serviceSelect) return;
-
-    // Limpiar opciones existentes
-    serviceSelect.innerHTML = '<option value="">Selecciona un servicio</option>';
-
-    // Agregar servicios al select
-    appState.services.forEach(service => {
-        const option = document.createElement('option');
-        option.value = service.service;
-        option.textContent = `${service.name} - $${(parseFloat(service.rate) * 1.2).toFixed(4)} - ${service.category}`;
-        option.dataset.service = JSON.stringify(service);
-        serviceSelect.appendChild(option);
-    });
-
-    console.log(`✅ ${appState.services.length} servicios agregados al select`);
-
-    // Si hay un servicio previamente seleccionado, seleccionarlo automáticamente
-    if (appState.selectedService) {
-        serviceSelect.value = appState.selectedService.service;
-
-        // Disparar evento de cambio para mostrar detalles del servicio
-        setTimeout(() => {
-            const event = new Event('change');
-            serviceSelect.dispatchEvent(event);
-            console.log('✅ Servicio previamente seleccionado restaurado:', appState.selectedService.name);
-        }, 100);
-    }
-
-    // Evento de cambio de servicio
-    serviceSelect.addEventListener('change', function() {
-        const selectedOption = this.options[this.selectedIndex];
-        if (!selectedOption.dataset.service) {
-            // Ocultar detalles y formulario si no hay servicio seleccionado
-            document.getElementById('service-details').style.display = 'none';
-            document.getElementById('create-order-form').style.display = 'none';
-            return;
-        }
-        
-        const service = JSON.parse(selectedOption.dataset.service);
-        showServiceDetails(service);
-        showOrderForm(service);
-    });
-
-    // Búsqueda de servicios
-    if (serviceSearch) {
-        serviceSearch.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            const options = serviceSelect.options;
-
-            for (let i = 1; i < options.length; i++) {
-                const text = options[i].textContent.toLowerCase();
-                options[i].style.display = text.includes(searchTerm) ? '' : 'none';
-            }
+    // Verificar si los servicios están completamente cargados
+    if (!appState.servicesLoaded || appState.services.length === 0) {
+        console.warn('⚠️ Servicios no cargados, forzando carga...');
+        showServicesLoadingState();
+        loadServicesInBackground().then(() => {
+            populateServiceSelectOptimized();
+            setupCreateOrderEvents();
+            hideServicesLoadingState();
+        }).catch(error => {
+            console.error('❌ Error forzando carga de servicios:', error);
+            showServicesErrorState();
         });
+    } else {
+        console.log('✅ Servicios ya cargados, procediendo con configuración');
+        populateServiceSelectOptimized();
+        setupCreateOrderEvents();
     }
+}
 
-    // Evento de submit del formulario
+// Mostrar estado de carga de servicios
+function showServicesLoadingState() {
+    const serviceSelect = document.getElementById('create-service-select');
     const form = document.getElementById('create-order-form');
-    if (form) {
-        form.addEventListener('submit', handleCreateOrderSubmit);
+
+    if (serviceSelect) {
+        serviceSelect.innerHTML = '<option value="">Cargando servicios...</option>';
+        serviceSelect.disabled = true;
     }
 
-    // Evento de cambio de cantidad
-    const quantityInput = document.getElementById('create-order-quantity');
-    if (quantityInput) {
-        quantityInput.addEventListener('input', updateCostSummary);
+    if (form) {
+        form.style.opacity = '0.6';
+        form.style.pointerEvents = 'none';
+
+        // Agregar indicador de carga
+        const loadingDiv = document.createElement('div');
+        loadingDiv.id = 'services-loading-indicator';
+        loadingDiv.className = 'services-loading-indicator';
+        loadingDiv.innerHTML = `
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Cargando servicios... Esto puede tomar unos momentos.</p>
+            </div>
+        `;
+        form.parentNode.insertBefore(loadingDiv, form);
+    }
+}
+
+// Ocultar estado de carga de servicios
+function hideServicesLoadingState() {
+    const serviceSelect = document.getElementById('create-service-select');
+    const loadingIndicator = document.getElementById('services-loading-indicator');
+    const form = document.getElementById('create-order-form');
+
+    if (serviceSelect) {
+        serviceSelect.disabled = false;
+    }
+
+    if (loadingIndicator) {
+        loadingIndicator.remove();
+    }
+
+    if (form) {
+        form.style.opacity = '1';
+        form.style.pointerEvents = 'auto';
+    }
+}
+
+// Mostrar estado de error de servicios
+function showServicesErrorState() {
+    const serviceSelect = document.getElementById('create-service-select');
+    const form = document.getElementById('create-order-form');
+
+    if (serviceSelect) {
+        serviceSelect.innerHTML = '<option value="">Error al cargar servicios</option>';
+        serviceSelect.disabled = true;
+    }
+
+    if (form) {
+        form.style.opacity = '0.6';
+        form.style.pointerEvents = 'none';
+
+        // Agregar indicador de error
+        const errorDiv = document.createElement('div');
+        errorDiv.id = 'services-error-indicator';
+        errorDiv.className = 'services-error-indicator';
+        errorDiv.innerHTML = `
+            <div class="error-message">
+                <i class="fas fa-exclamation-triangle"></i>
+                <p>Error al cargar servicios. <button onclick="retryLoadServices()" class="btn-link">Reintentar</button></p>
+            </div>
+        `;
+        form.parentNode.insertBefore(errorDiv, form);
     }
 }
 
@@ -1767,30 +2013,35 @@ function updateCostSummary() {
 // Manejar submit del formulario de crear orden
 async function handleCreateOrderSubmit(e) {
     e.preventDefault();
-    
+
+    // Validar que los servicios estén disponibles
+    if (!validateServicesBeforeOrder()) {
+        return;
+    }
+
     if (!appState.selectedService) {
         showToast('Por favor selecciona un servicio', 'error');
         return;
     }
-    
+
     const link = document.getElementById('create-order-link').value.trim();
     const quantity = parseInt(document.getElementById('create-order-quantity').value);
-    
+
     if (!link || !quantity) {
         showToast('Por favor completa todos los campos', 'error');
         return;
     }
-    
+
     const submitBtn = document.getElementById('submit-order-btn');
     submitBtn.disabled = true;
     submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando...';
-    
+
     console.log('Creando orden:', {
         service_id: appState.selectedService.service,
         link,
         quantity
     });
-    
+
     try {
         console.log('📤 Enviando petición a /api/orders/create');
         console.log('📦 Datos:', {
@@ -1798,7 +2049,7 @@ async function handleCreateOrderSubmit(e) {
             link: link,
             quantity: parseInt(quantity)
         });
-        
+
         const response = await fetch('/api/orders/create', {
             method: 'POST',
             headers: {
@@ -1811,37 +2062,37 @@ async function handleCreateOrderSubmit(e) {
                 quantity: parseInt(quantity)
             })
         });
-        
+
         console.log('📥 Status de respuesta:', response.status, response.statusText);
-        
+
         const data = await response.json();
         console.log('📋 Respuesta del servidor:', data);
-        
+
         if (response.ok) {
             showToast('¡Orden creada exitosamente!', 'success');
-            
+
             // Actualizar balance
             await loadBalance();
-            
+
             // Limpiar formulario y servicio seleccionado
             document.getElementById('create-order-form').reset();
             document.getElementById('create-service-select').value = '';
             document.getElementById('service-details').style.display = 'none';
             document.getElementById('create-order-form').style.display = 'none';
-            
+
             // Limpiar servicio seleccionado del estado global
             appState.selectedService = null;
-            
+
             // Redirigir a Mis Órdenes
             setTimeout(() => {
                 switchPage('orders');
             }, 1500);
-            
+
         } else {
             console.error('Error del servidor:', data);
             showToast(data.message || 'Error al crear la orden', 'error');
         }
-        
+
     } catch (error) {
         console.error('Error creando orden:', error);
         showToast('Error de conexión: ' + error.message, 'error');
@@ -2716,7 +2967,7 @@ function renderAdminOrders(orders) {
         console.log('⚠️ No hay órdenes para mostrar');
         tbody.innerHTML = `
             <tr>
-                <td colspan="8" style="text-align: center; padding: 2rem;">
+                <td colspan="9" style="text-align: center; padding: 2rem;">
                     <i class="fas fa-shopping-cart" style="font-size: 3rem; color: #ccc; margin-bottom: 1rem;"></i>
                     <p>No hay órdenes registradas</p>
                 </td>
@@ -2736,6 +2987,9 @@ function renderAdminOrders(orders) {
             'Partial': 'warning'
         }[order.status] || 'secondary';
         
+        // Determinar si mostrar botón de cancelar
+        const canCancel = order.status !== 'Completed' && order.status !== 'Canceled';
+        
         return `
             <tr>
                 <td>${order.id}</td>
@@ -2746,14 +3000,98 @@ function renderAdminOrders(orders) {
                 <td>$${parseFloat(order.charge).toFixed(2)}</td>
                 <td><span class="badge badge-${statusClass}">${order.status}</span></td>
                 <td>${new Date(order.fecha_creacion).toLocaleString()}</td>
+                <td>
+                    <div class="order-actions">
+                        ${canCancel ? `
+                            <button class="btn btn-sm btn-danger" onclick="adminCancelOrder(${order.id})" title="Cancelar orden">
+                                <i class="fas fa-times"></i>
+                                Cancelar
+                            </button>
+                        ` : `
+                            <span class="text-muted">No disponible</span>
+                        `}
+                    </div>
+                </td>
             </tr>
         `;
     }).join('');
 }
 
-// Refrescar órdenes
-function refreshAdminOrders() {
-    loadAdminOrders();
+// Cancelar orden administrativamente
+async function adminCancelOrder(orderId) {
+    // Obtener información de la orden para mostrar detalles en la confirmación
+    const orders = await fetch('/api/admin/orders');
+    const data = await orders.json();
+    const order = data.orders.find(o => o.id === orderId);
+    
+    if (!order) {
+        showToast('Orden no encontrada', 'error');
+        return;
+    }
+
+    const confirmMessage = `¿Estás seguro de que quieres cancelar esta orden?
+
+Detalles de la orden:
+- ID: #${order.id}
+- Usuario: ${order.nombre || 'N/A'}
+- Servicio: ${order.service_name || 'N/A'}
+- Cantidad: ${order.quantity}
+- Costo: $${parseFloat(order.charge).toFixed(2)}
+- Estado actual: ${order.status}
+
+Esta acción:
+✅ Cancelará la orden
+💰 Reembolsará $${parseFloat(order.charge).toFixed(2)} al usuario
+📝 Se registrará en el historial de transacciones
+
+¿Continuar?`;
+
+    if (!confirm(confirmMessage)) {
+        return;
+    }
+
+    try {
+        showLoading(true);
+        console.log(`🔄 Cancelando orden #${orderId} administrativamente...`);
+
+        const response = await fetch(`/api/admin/orders/${orderId}/cancel`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                reason: 'Cancelada por administrador desde panel'
+            })
+        });
+
+        const result = await response.json();
+
+        if (response.ok) {
+            showToast(`✅ ${result.message}`, 'success');
+            
+            // Recargar órdenes para ver el cambio
+            await loadAdminOrders();
+            
+            // También recargar usuarios para actualizar balances si es necesario
+            if (document.getElementById('admin-users-tab').style.display !== 'none') {
+                await loadAdminUsers();
+            }
+            
+            // Recargar transacciones para mostrar el reembolso
+            if (document.getElementById('admin-transactions-tab').style.display !== 'none') {
+                await loadAdminTransactions();
+            }
+            
+        } else {
+            showToast(`❌ ${result.message}`, 'error');
+        }
+
+    } catch (error) {
+        console.error('Error cancelando orden:', error);
+        showToast('Error de conexión: ' + error.message, 'error');
+    } finally {
+        showLoading(false);
+    }
 }
 
 // Procesar órdenes pendientes
@@ -2915,6 +3253,7 @@ window.refreshOrders = refreshOrders;
 window.checkOrderStatus = checkOrderStatus;
 window.refreshData = refreshData;
 window.openOrderModal = openOrderModal;
+window.adminCancelOrder = adminCancelOrder;
 // ============================================
 // CONFIGURACIÓN DE USUARIO
 // ============================================

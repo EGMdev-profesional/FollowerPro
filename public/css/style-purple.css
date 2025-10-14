@@ -4204,13 +4204,108 @@ body {
     }
 }
 
-/* Animación para cuando cambian los valores */
-.cost-value {
-    transition: color 0.3s ease;
+/* ============================================
+   INDICADORES DE CARGA Y ERROR PARA SERVICIOS
+   ============================================ */
+
+.services-loading-indicator {
+    background: var(--card-background);
+    border: 1px solid var(--border-light);
+    border-radius: var(--border-radius);
+    padding: 2rem;
+    text-align: center;
+    margin-bottom: 1rem;
+    animation: pulse-glow 2s ease-in-out infinite;
 }
 
-.cost-item.total .total-amount {
-    transition: all 0.3s ease;
+.loading-spinner {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+}
+
+.loading-spinner i {
+    font-size: 2rem;
+    color: var(--primary-color);
+}
+
+.loading-spinner p {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin: 0;
+}
+
+.services-error-indicator {
+    background: linear-gradient(135deg, #fef2f2, #fee2e2);
+    border: 1px solid #fecaca;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    text-align: center;
+    margin-bottom: 1rem;
+}
+
+.error-message {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.error-message i {
+    font-size: 1.5rem;
+    color: var(--error-color);
+}
+
+.error-message p {
+    color: var(--error-color);
+    font-size: 0.95rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    text-decoration: underline;
+    cursor: pointer;
+    font-size: inherit;
+    padding: 0;
+    transition: var(--transition);
+}
+
+.btn-link:hover {
+    color: var(--primary-dark);
+    text-decoration: none;
+}
+
+/* Animación para indicadores */
+@keyframes pulse-glow {
+    0%, 100% {
+        box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 8px rgba(139, 92, 246, 0);
+    }
+}
+
+/* Responsive para indicadores */
+@media (max-width: 768px) {
+    .services-loading-indicator,
+    .services-error-indicator {
+        margin: 0 -1rem 1rem -1rem;
+        border-radius: 0;
+        border-left: none;
+        border-right: none;
+    }
+
+    .loading-spinner,
+    .error-message {
+        padding: 0 1rem;
+    }
 }
 
 .settings-container {

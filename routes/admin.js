@@ -389,4 +389,31 @@ router.put('/config', requireAdmin, async (req, res) => {
     }
 });
 
+// Cancelar orden administrativamente
+router.post('/orders/:orderId/cancel', requireAdmin, async (req, res) => {
+    try {
+        const { orderId } = req.params;
+        const { reason = 'Cancelada por administrador' } = req.body;
+        const adminUserId = req.session.userId;
+
+        console.log(`🔄 Cancelando orden #${orderId} administrativamente...`);
+
+        const result = await Order.adminCancel(parseInt(orderId), adminUserId, reason);
+
+        res.json({
+            message: result.message,
+            order_id: result.orderId,
+            refunded_amount: result.refundedAmount,
+            success: true
+        });
+
+    } catch (error) {
+        console.error('Error cancelando orden administrativamente:', error);
+        res.status(400).json({
+            message: error.message || 'Error al cancelar la orden',
+            success: false
+        });
+    }
+});
+
 module.exports = router;
