@@ -175,6 +175,25 @@ async function syncServicesToDatabase(services) {
         // Procesar batch en paralelo
         await Promise.all(batch.map(async (service) => {
             try {
+                // Validar datos antes de insertar
+                if (!service.service || !service.name || !service.category) {
+                    console.warn(`⚠️ Servicio ${service.service} tiene datos incompletos, omitiendo...`);
+                    return;
+                }
+                
+                // Limpiar y validar datos
+                const serviceName = String(service.name || '').trim();
+                const serviceType = String(service.type || 'Default').trim().substring(0, 100);
+                const serviceCategory = String(service.category || 'Sin categoría').trim();
+                const serviceRate = parseFloat(service.rate) || 0;
+                const serviceMin = parseInt(service.min) || 1;
+                const serviceMax = parseInt(service.max) || 1000000;
+                
+                if (!serviceName || !serviceCategory || serviceRate <= 0) {
+                    console.warn(`⚠️ Servicio ${service.service} tiene datos inválidos, omitiendo...`);
+                    return;
+                }
+                
                 await query(`
                     INSERT INTO servicios_cache 
                     (service_id, name, type, category, rate, min, max, refill, \`cancel\`, markup, activo)
@@ -192,12 +211,12 @@ async function syncServicesToDatabase(services) {
                         activo = 1
                 `, [
                     service.service,
-                    service.name,
-                    service.type || 'Default',
-                    service.category,
-                    parseFloat(service.rate),
-                    parseInt(service.min),
-                    parseInt(service.max),
+                    serviceName,
+                    serviceType,
+                    serviceCategory,
+                    serviceRate,
+                    serviceMin,
+                    serviceMax,
                     service.refill ? 1 : 0,
                     service.cancel ? 1 : 0,
                     20
@@ -208,8 +227,8 @@ async function syncServicesToDatabase(services) {
                 console.error('Datos del servicio:', {
                     service_id: service.service,
                     name: service.name?.substring(0, 50),
-                    type: service.type,
-                    category: service.category,
+                    type: service.type?.substring(0, 50),
+                    category: service.category?.substring(0, 100),
                     rate: service.rate,
                     min: service.min,
                     max: service.max

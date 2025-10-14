@@ -39,8 +39,8 @@ CREATE TABLE `servicios_cache` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `service_id` int(11) NOT NULL,
   `name` text NOT NULL,
-  `type` varchar(50) NOT NULL,
-  `category` varchar(100) NOT NULL,
+  `type` varchar(100) NOT NULL,
+  `category` text NOT NULL,
   `rate` decimal(10,4) NOT NULL,
   `min` int(11) NOT NULL,
   `max` int(11) NOT NULL,
@@ -53,7 +53,6 @@ CREATE TABLE `servicios_cache` (
   `fecha_actualizacion` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   PRIMARY KEY (`id`),
   UNIQUE KEY `service_id` (`service_id`),
-  KEY `idx_category` (`category`),
   KEY `idx_activo` (`activo`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

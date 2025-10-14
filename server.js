@@ -115,11 +115,60 @@ app.use((req, res) => {
     });
 });
 
+// Función para arreglar el schema automáticamente
+async function fixDatabaseSchema() {
+    const { query, getConnection } = require('./config/database');
+    
+    try {
+        console.log('🔧 Verificando y corrigiendo schema de base de datos...');
+        
+        // Verificar si la columna category es VARCHAR
+        const connection = getConnection();
+        const [columns] = await connection.execute(
+            "SHOW COLUMNS FROM servicios_cache LIKE 'category'"
+        );
+        
+        if (columns.length > 0 && columns[0].Type.includes('varchar')) {
+            console.log('📝 Aplicando correcciones al schema...');
+            
+            // Eliminar índice si existe
+            try {
+                await query('ALTER TABLE servicios_cache DROP INDEX idx_category');
+                console.log('✅ Índice idx_category eliminado');
+            } catch (err) {
+                // Índice no existe, continuar
+            }
+            
+            // Modificar columna category
+            await query('ALTER TABLE servicios_cache MODIFY COLUMN category TEXT NOT NULL');
+            console.log('✅ Columna category actualizada a TEXT');
+            
+            // Modificar columna type
+            await query('ALTER TABLE servicios_cache MODIFY COLUMN type VARCHAR(100) NOT NULL');
+            console.log('✅ Columna type actualizada a VARCHAR(100)');
+            
+            // Limpiar datos inválidos
+            await query('DELETE FROM servicios_cache WHERE category IS NULL OR category = "" OR name IS NULL OR name = ""');
+            console.log('✅ Datos inválidos limpiados');
+            
+            console.log('✅ Schema corregido exitosamente');
+        } else {
+            console.log('✅ Schema ya está actualizado');
+        }
+    } catch (error) {
+        console.warn('⚠️ No se pudo verificar/corregir schema:', error.message);
+        console.log('ℹ️ El sistema continuará normalmente');
+    }
+}
+
 // Inicializar aplicación
 async function startServer() {
     try {
         // Inicializar base de datos
         await initDatabase();
+        
+        // Arreglar schema automáticamente (solo se ejecuta si es necesario)
+        await fixDatabaseSchema();
         
         // Crear usuario administrador si no existe
         await User.createAdmin();

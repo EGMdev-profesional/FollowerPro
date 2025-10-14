@@ -46,8 +46,8 @@ const initDatabase = async () => {
                     id INT(11) NOT NULL AUTO_INCREMENT,
                     service_id INT(11) NOT NULL,
                     name TEXT NOT NULL,
-                    type VARCHAR(50) NOT NULL,
-                    category VARCHAR(100) NOT NULL,
+                    type VARCHAR(100) NOT NULL,
+                    category TEXT NOT NULL,
                     rate DECIMAL(10,4) NOT NULL,
                     min INT(11) NOT NULL,
                     max INT(11) NOT NULL,
@@ -60,7 +60,6 @@ const initDatabase = async () => {
                     fecha_actualizacion TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                     PRIMARY KEY (id),
                     UNIQUE KEY service_id (service_id),
-                    KEY idx_category (category),
                     KEY idx_activo (activo)
                 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
             `);

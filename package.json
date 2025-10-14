@@ -9,7 +9,10 @@
     "init-db": "node init-database.js",
     "init-db-fixed": "node init-database-fixed.js",
     "check-tables": "node check-tables.js",
-    "fix-order-id": "node fix-order-id.js"
+    "fix-order-id": "node fix-order-id.js",
+    "fix-schema": "node fix-database-schema.js",
+    "test-orders": "node test-order-creation.js",
+    "verify": "node verificar-sistema.js"
   },
   "dependencies": {
     "express": "^4.18.2",

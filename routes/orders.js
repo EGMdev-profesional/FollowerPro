@@ -10,13 +10,18 @@ router.post('/create', async (req, res) => {
         console.log('📋 Sesión recibida:', {
             sessionID: req.sessionID,
             userId: req.session?.userId,
-            session: req.session
+            cookies: req.cookies,
+            headers: {
+                cookie: req.headers.cookie ? 'presente' : 'ausente',
+                'content-type': req.headers['content-type']
+            }
         });
         
         // Verificar sesión
         if (!req.session || !req.session.userId) {
             console.error('❌ No hay sesión activa');
             return res.status(401).json({
+                success: false,
                 message: 'No autenticado. Por favor inicia sesión nuevamente.'
             });
         }
@@ -26,40 +31,58 @@ router.post('/create', async (req, res) => {
         const { service_id, link, quantity } = req.body;
         const userId = req.session.userId;
 
+        console.log('📦 Datos recibidos:', { service_id, link, quantity, userId });
+
         // Validaciones básicas
         if (!service_id || !link || !quantity) {
+            console.error('❌ Datos incompletos:', { service_id, link, quantity });
             return res.status(400).json({
+                success: false,
                 message: 'service_id, link y quantity son requeridos'
             });
         }
 
-        if (quantity <= 0) {
+        const parsedQuantity = parseInt(quantity);
+        if (isNaN(parsedQuantity) || parsedQuantity <= 0) {
             return res.status(400).json({
-                message: 'La cantidad debe ser mayor a 0'
+                success: false,
+                message: 'La cantidad debe ser un número mayor a 0'
             });
         }
 
         // Validar formato de link
-        if (!isValidUrl(link)) {
+        const trimmedLink = String(link).trim();
+        if (!trimmedLink || !isValidUrl(trimmedLink)) {
             return res.status(400).json({
-                message: 'El link debe ser una URL válida'
+                success: false,
+                message: 'El link debe ser una URL válida (debe comenzar con http:// o https://)'
             });
         }
+
+        console.log('✅ Validaciones pasadas, creando orden...');
 
         // Crear la orden
         const orderId = await Order.create(userId, {
             service_id: parseInt(service_id),
-            link: link.trim(),
-            quantity: parseInt(quantity)
+            link: trimmedLink,
+            quantity: parsedQuantity
         });
+
+        console.log('✅ Orden creada con ID:', orderId);
 
         // Obtener la orden creada con detalles
         const order = await Order.getById(orderId, userId);
 
+        if (!order) {
+            throw new Error('No se pudo recuperar la orden creada');
+        }
+
         res.status(201).json({
+            success: true,
             message: 'Orden creada exitosamente',
             order: {
                 id: order.id,
+                order_id: order.order_id,
                 service_id: order.service_id,
                 service_name: order.service_name,
                 link: order.link,
@@ -71,8 +94,10 @@ router.post('/create', async (req, res) => {
         });
 
     } catch (error) {
-        console.error('Error creando orden:', error);
+        console.error('❌ Error creando orden:', error);
+        console.error('Stack:', error.stack);
         res.status(400).json({
+            success: false,
             message: error.message || 'Error al crear la orden'
         });
     }
