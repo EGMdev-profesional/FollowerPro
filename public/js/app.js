@@ -2431,11 +2431,12 @@ function updateOrderCalculation(service) {
 
 // Crear orden
 async function createOrder(serviceId) {
-    const linkInput = document.getElementById('order-link');
-    const quantityInput = document.getElementById('order-quantity');
+    const linkInput = document.getElementById('create-order-link');
+    const quantityInput = document.getElementById('create-order-quantity');
     
     if (!linkInput || !quantityInput) {
         showToast('Error: Campos no encontrados', 'error');
+        console.error('Campos no encontrados:', { linkInput, quantityInput });
         return;
     }
     
@@ -2456,10 +2457,12 @@ async function createOrder(serviceId) {
     }
     
     const createBtn = document.getElementById('create-order-btn');
-    createBtn.disabled = true;
-    createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando...';
+    if (createBtn) {
+        createBtn.disabled = true;
+        createBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creando...';
+    }
     
-    console.log('Creando orden:', { service_id: serviceId, link, quantity });
+    console.log('🛒 Creando orden:', { service_id: serviceId, link, quantity });
     
     try {
         const response = await fetch('/api/orders/create', {
@@ -2476,31 +2479,36 @@ async function createOrder(serviceId) {
         });
         
         const data = await response.json();
-        console.log('Respuesta del servidor:', data);
+        console.log('📥 Respuesta del servidor:', data);
         
         if (response.ok) {
             showToast('¡Orden creada exitosamente!', 'success');
             
+            // Limpiar formulario
+            linkInput.value = '';
+            quantityInput.value = '';
+            
             // Actualizar balance
             await loadBalance();
             
-            // Cerrar modal
-            closeOrderModal();
-            
-            // Redirigir a Mis Órdenes
-            switchPage('orders');
+            // Redirigir a Mis Órdenes después de 1 segundo
+            setTimeout(() => {
+                switchPage('orders');
+            }, 1000);
             
         } else {
-            console.error('Error del servidor:', data);
+            console.error('❌ Error del servidor:', data);
             showToast(data.message || 'Error al crear la orden', 'error');
         }
         
     } catch (error) {
-        console.error('Error creando orden:', error);
+        console.error('❌ Error creando orden:', error);
         showToast('Error de conexión: ' + error.message, 'error');
     } finally {
-        createBtn.disabled = false;
-        createBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Crear Orden';
+        if (createBtn) {
+            createBtn.disabled = false;
+            createBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Crear Orden';
+        }
     }
 }
 
