@@ -177,13 +177,6 @@
                         </div>
                         
                         <div class="filter-group">
-                            <label><i class="fas fa-layer-group"></i> Categoría</label>
-                            <select id="category-filter" class="filter-select">
-                                <option value="">Todas las categorías</option>
-                            </select>
-                        </div>
-                        
-                        <div class="filter-group">
                             <label><i class="fas fa-tag"></i> Tipo de Servicio</label>
                             <select id="type-filter" class="filter-select">
                                 <option value="">Todos los tipos</option>
@@ -253,40 +246,40 @@
                 <div class="create-order-container">
                     <!-- Iconos de Redes Sociales -->
                     <div class="social-networks-grid">
-                        <button class="social-network-btn" data-network="all" onclick="filterByNetwork('all')">
+                        <button class="social-network-btn active" data-network="all" onclick="filterByNetwork('all')" title="Todas las redes">
                             <i class="fas fa-th"></i>
                         </button>
-                        <button class="social-network-btn" data-network="telegram" onclick="filterByNetwork('telegram')">
+                        <button class="social-network-btn" data-network="telegram" onclick="filterByNetwork('telegram')" title="Telegram">
                             <i class="fab fa-telegram"></i>
                         </button>
-                        <button class="social-network-btn" data-network="instagram" onclick="filterByNetwork('instagram')">
+                        <button class="social-network-btn" data-network="instagram" onclick="filterByNetwork('instagram')" title="Instagram">
                             <i class="fab fa-instagram"></i>
                         </button>
-                        <button class="social-network-btn" data-network="youtube" onclick="filterByNetwork('youtube')">
+                        <button class="social-network-btn" data-network="youtube" onclick="filterByNetwork('youtube')" title="YouTube">
                             <i class="fab fa-youtube"></i>
                         </button>
-                        <button class="social-network-btn" data-network="twitter" onclick="filterByNetwork('twitter')">
+                        <button class="social-network-btn" data-network="twitter" onclick="filterByNetwork('twitter')" title="Twitter">
                             <i class="fab fa-twitter"></i>
                         </button>
-                        <button class="social-network-btn" data-network="facebook" onclick="filterByNetwork('facebook')">
+                        <button class="social-network-btn" data-network="facebook" onclick="filterByNetwork('facebook')" title="Facebook">
                             <i class="fab fa-facebook"></i>
                         </button>
-                        <button class="social-network-btn" data-network="tiktok" onclick="filterByNetwork('tiktok')">
+                        <button class="social-network-btn" data-network="tiktok" onclick="filterByNetwork('tiktok')" title="TikTok">
                             <i class="fab fa-tiktok"></i>
                         </button>
-                        <button class="social-network-btn" data-network="threads" onclick="filterByNetwork('threads')">
+                        <button class="social-network-btn" data-network="threads" onclick="filterByNetwork('threads')" title="Threads">
                             <i class="fab fa-threads"></i>
                         </button>
-                        <button class="social-network-btn" data-network="vk" onclick="filterByNetwork('vk')">
+                        <button class="social-network-btn" data-network="vk" onclick="filterByNetwork('vk')" title="VK">
                             <i class="fab fa-vk"></i>
                         </button>
-                        <button class="social-network-btn" data-network="twitch" onclick="filterByNetwork('twitch')">
+                        <button class="social-network-btn" data-network="twitch" onclick="filterByNetwork('twitch')" title="Twitch">
                             <i class="fab fa-twitch"></i>
                         </button>
-                        <button class="social-network-btn" data-network="spotify" onclick="filterByNetwork('spotify')">
+                        <button class="social-network-btn" data-network="spotify" onclick="filterByNetwork('spotify')" title="Spotify">
                             <i class="fab fa-spotify"></i>
                         </button>
-                        <button class="social-network-btn more-networks" onclick="showAllNetworks()">
+                        <button class="social-network-btn more-networks" onclick="showAllNetworks()" title="Más redes">
                             <i class="fas fa-plus"></i>
                         </button>
                     </div>

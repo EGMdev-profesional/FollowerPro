@@ -4535,18 +4535,20 @@ body {
 /* Grid de Redes Sociales */
 .social-networks-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 16px;
     margin-bottom: 24px;
-    padding: 20px;
+    padding: 24px;
     background: var(--card-background);
     border-radius: var(--border-radius);
     box-shadow: var(--shadow);
+    max-width: 100%;
 }
 
 .social-network-btn {
-    width: 60px;
-    height: 60px;
+    width: 100%;
+    aspect-ratio: 1;
+    min-height: 60px;
     border: 2px solid var(--border-color);
     background: var(--card-background);
     border-radius: var(--border-radius-sm);
@@ -4555,16 +4557,17 @@ body {
     justify-content: center;
     cursor: pointer;
     transition: var(--transition);
-    font-size: 24px;
+    font-size: 26px;
     color: var(--text-secondary);
+    position: relative;
 }
 
 .social-network-btn:hover {
     border-color: var(--primary-color);
-    background: var(--primary-light);
+    background: linear-gradient(135deg, var(--primary-light) 0%, var(--primary-color) 100%);
     color: var(--text-white);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: var(--shadow-lg);
 }
 
 .social-network-btn.active {
@@ -4574,10 +4577,27 @@ body {
     box-shadow: var(--shadow-purple);
 }
 
+.social-network-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: -2px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 30px;
+    height: 3px;
+    background: var(--primary-color);
+    border-radius: 2px;
+}
+
 .social-network-btn.more-networks {
     background: var(--gradient-primary);
     color: var(--text-white);
     border: none;
+    font-size: 22px;
+}
+
+.social-network-btn.more-networks:hover {
+    transform: translateY(-3px) scale(1.05) rotate(90deg);
 }
 
 /* Formulario de Crear Orden */
@@ -4772,20 +4792,40 @@ body {
 }
 
 /* Responsive */
+@media (max-width: 1024px) {
+    .social-networks-grid {
+        grid-template-columns: repeat(6, 1fr);
+        gap: 12px;
+        padding: 20px;
+    }
+}
+
 @media (max-width: 768px) {
     .social-networks-grid {
         grid-template-columns: repeat(4, 1fr);
-        gap: 8px;
+        gap: 10px;
         padding: 16px;
     }
     
     .social-network-btn {
-        width: 50px;
-        height: 50px;
-        font-size: 20px;
+        min-height: 55px;
+        font-size: 22px;
     }
     
     .service-pricing-info {
         grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .social-networks-grid {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+        padding: 12px;
+    }
+    
+    .social-network-btn {
+        min-height: 50px;
+        font-size: 20px;
     }
 }

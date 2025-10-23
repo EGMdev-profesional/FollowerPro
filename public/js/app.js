@@ -1942,16 +1942,24 @@ function populateServiceSelectOptimized() {
     // Limpiar select
     serviceSelect.innerHTML = '<option value="">Selecciona un servicio</option>';
     
+    // Usar allServices en lugar de services
+    const servicesToUse = appState.allServices && appState.allServices.length > 0 
+        ? appState.allServices 
+        : appState.services;
+    
     // Verificar si hay servicios
-    if (!appState.services || appState.services.length === 0) {
+    if (!servicesToUse || servicesToUse.length === 0) {
+        console.warn('⚠️ No hay servicios disponibles');
         serviceSelect.innerHTML = '<option value="">No hay servicios disponibles</option>';
         serviceSelect.disabled = true;
         return;
     }
     
+    console.log(`📦 Cargando ${servicesToUse.length} servicios en el selector`);
+    
     // Agrupar servicios por categoría
     const servicesByCategory = {};
-    appState.services.forEach(service => {
+    servicesToUse.forEach(service => {
         const category = service.category || 'Otros';
         if (!servicesByCategory[category]) {
             servicesByCategory[category] = [];
@@ -1967,7 +1975,7 @@ function populateServiceSelectOptimized() {
         servicesByCategory[category].forEach(service => {
             const option = document.createElement('option');
             option.value = service.service;
-            option.textContent = `${service.name} - $${(parseFloat(service.rate) * 1.25).toFixed(4)}/1k`;
+            option.textContent = `${service.name} - $${(parseFloat(service.rate) * 1.2).toFixed(4)}/1k`;
             option.dataset.service = JSON.stringify(service);
             optgroup.appendChild(option);
         });
@@ -1976,7 +1984,7 @@ function populateServiceSelectOptimized() {
     });
     
     serviceSelect.disabled = false;
-    console.log(`✅ ${appState.services.length} servicios cargados en el select`);
+    console.log(`✅ ${servicesToUse.length} servicios cargados en el select`);
     
     // Si hay un servicio pre-seleccionado en appState, seleccionarlo
     if (appState.selectedServiceId) {
@@ -3920,27 +3928,47 @@ function filterByNetwork(network) {
 // Actualizar selector de servicios basado en la red social
 function updateServiceSelector(network) {
     const serviceSelect = document.getElementById('create-service-select');
-    if (!serviceSelect || !appState.allServices) return;
     
-    let filteredServices = appState.allServices;
+    // Usar allServices o services como fallback
+    const servicesToUse = appState.allServices && appState.allServices.length > 0 
+        ? appState.allServices 
+        : appState.services;
+    
+    if (!serviceSelect || !servicesToUse || servicesToUse.length === 0) {
+        console.warn('⚠️ No hay servicios disponibles para filtrar');
+        if (serviceSelect) {
+            serviceSelect.innerHTML = '<option value="">No hay servicios disponibles</option>';
+        }
+        return;
+    }
+    
+    let filteredServices = servicesToUse;
     
     if (network && network !== 'all') {
-        filteredServices = appState.allServices.filter(service => 
+        filteredServices = servicesToUse.filter(service => 
             service.name.toLowerCase().includes(network.toLowerCase()) ||
             service.category.toLowerCase().includes(network.toLowerCase())
         );
     }
     
+    console.log(`🔍 Filtrando por red: ${network}, encontrados: ${filteredServices.length} servicios`);
+    
     // Limpiar y repoblar el selector
     serviceSelect.innerHTML = '<option value="">Selecciona un servicio</option>';
+    
+    if (filteredServices.length === 0) {
+        serviceSelect.innerHTML = '<option value="">No hay servicios para esta red social</option>';
+        return;
+    }
     
     // Agrupar por categoría
     const servicesByCategory = {};
     filteredServices.forEach(service => {
-        if (!servicesByCategory[service.category]) {
-            servicesByCategory[service.category] = [];
+        const category = service.category || 'Otros';
+        if (!servicesByCategory[category]) {
+            servicesByCategory[category] = [];
         }
-        servicesByCategory[service.category].push(service);
+        servicesByCategory[category].push(service);
     });
     
     // Agregar opciones agrupadas
