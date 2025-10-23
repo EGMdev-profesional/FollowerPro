@@ -4048,6 +4048,98 @@ function updateCreateOrderBalance() {
     if (balanceEl) {
         balanceEl.textContent = formatBalance(appState.balance);
     }
+    
+    // Actualizar contador de favoritos en crear orden
+    updateFavoritesCountInCreateOrder();
+}
+
+// Variable para controlar si se están mostrando favoritos en crear orden
+let showingFavoritesInCreateOrder = false;
+
+// Toggle favoritos en crear orden
+function toggleFavoritesInCreateOrder() {
+    showingFavoritesInCreateOrder = !showingFavoritesInCreateOrder;
+    
+    const btn = document.getElementById('show-favorites-create-order');
+    const serviceSelect = document.getElementById('create-service-select');
+    
+    if (!serviceSelect) return;
+    
+    if (showingFavoritesInCreateOrder) {
+        // Mostrar solo favoritos
+        if (btn) {
+            btn.classList.add('active');
+            btn.innerHTML = '<i class="fas fa-heart"></i> <span>Mostrando Favoritos</span>';
+        }
+        
+        // Filtrar servicios favoritos
+        const servicesToUse = appState.allServices && appState.allServices.length > 0 
+            ? appState.allServices 
+            : appState.services;
+        
+        const favoriteServices = servicesToUse.filter(service => 
+            appState.favoriteServices.includes(service.service)
+        );
+        
+        console.log(`❤️ Mostrando ${favoriteServices.length} servicios favoritos`);
+        
+        // Limpiar y repoblar con favoritos
+        serviceSelect.innerHTML = '<option value="">Selecciona un servicio favorito</option>';
+        
+        if (favoriteServices.length === 0) {
+            serviceSelect.innerHTML = '<option value="">No tienes servicios favoritos</option>';
+            showToast('No tienes servicios favoritos. Agrega algunos desde la sección Servicios.', 'info');
+            return;
+        }
+        
+        // Agrupar por categoría
+        const servicesByCategory = {};
+        favoriteServices.forEach(service => {
+            const category = service.category || 'Otros';
+            if (!servicesByCategory[category]) {
+                servicesByCategory[category] = [];
+            }
+            servicesByCategory[category].push(service);
+        });
+        
+        // Agregar opciones agrupadas
+        Object.keys(servicesByCategory).sort().forEach(category => {
+            const optgroup = document.createElement('optgroup');
+            optgroup.label = category;
+            
+            servicesByCategory[category].forEach(service => {
+                const option = document.createElement('option');
+                option.value = service.service;
+                const price = (parseFloat(service.rate) * 1.2).toFixed(4);
+                option.textContent = `${service.name} - $${price}/1k`;
+                option.dataset.service = JSON.stringify(service);
+                optgroup.appendChild(option);
+            });
+            
+            serviceSelect.appendChild(optgroup);
+        });
+        
+        showToast(`Mostrando ${favoriteServices.length} servicios favoritos`, 'success');
+        
+    } else {
+        // Mostrar todos los servicios
+        if (btn) {
+            btn.classList.remove('active');
+            btn.innerHTML = `<i class="fas fa-heart"></i> <span>Mostrar Favoritos (<span id="favorites-count-create-order">${appState.favoriteServices.length}</span>)</span>`;
+        }
+        
+        // Recargar todos los servicios
+        populateServiceSelectOptimized();
+        showToast('Mostrando todos los servicios', 'info');
+    }
+}
+
+// Actualizar contador de favoritos en crear orden
+function updateFavoritesCountInCreateOrder() {
+    const countEl = document.getElementById('favorites-count-create-order');
+    if (countEl) {
+        countEl.textContent = appState.favoriteServices.length;
+    }
 }
 
 // Exponer funciones globalmente
@@ -4057,3 +4149,4 @@ window.showFavorites = showFavorites;
 window.toggleFavorite = toggleFavorite;
 window.filterByNetwork = filterByNetwork;
 window.showAllNetworks = showAllNetworks;
+window.toggleFavoritesInCreateOrder = toggleFavoritesInCreateOrder;

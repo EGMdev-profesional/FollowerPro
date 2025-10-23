@@ -4600,6 +4600,58 @@ body {
     transform: translateY(-3px) scale(1.05) rotate(90deg);
 }
 
+/* Filtro de Favoritos en Crear Orden */
+.create-order-filters {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 24px;
+}
+
+.btn-favorites {
+    background: var(--card-background);
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius-sm);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.btn-favorites i {
+    font-size: 18px;
+    color: var(--text-secondary);
+    transition: var(--transition);
+}
+
+.btn-favorites:hover {
+    border-color: var(--primary-color);
+    background: var(--background-color);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.btn-favorites:hover i {
+    color: var(--primary-color);
+    transform: scale(1.1);
+}
+
+.btn-favorites.active {
+    background: var(--primary-color);
+    border-color: var(--primary-color);
+    color: var(--text-white);
+    box-shadow: var(--shadow-purple);
+}
+
+.btn-favorites.active i {
+    color: var(--text-white);
+    animation: heartBeat 0.5s ease;
+}
+
 /* Formulario de Crear Orden */
 .order-form-card {
     background: var(--card-background);
