@@ -153,11 +153,6 @@
                 <div class="services-filters">
                     <div class="filter-row">
                         <div class="filter-group">
-                            <label><i class="fas fa-search"></i> Buscar</label>
-                            <input type="text" id="services-search" placeholder="Buscar por nombre..." class="filter-input">
-                        </div>
-                        
-                        <div class="filter-group">
                             <label><i class="fab fa-instagram"></i> Red Social</label>
                             <select id="social-network-filter" class="filter-select">
                                 <option value="">Todas las redes</option>
@@ -267,9 +262,6 @@
                         <button class="social-network-btn" data-network="tiktok" onclick="filterByNetwork('tiktok')" title="TikTok">
                             <i class="fab fa-tiktok"></i>
                         </button>
-                        <button class="social-network-btn" data-network="threads" onclick="filterByNetwork('threads')" title="Threads">
-                            <i class="fab fa-threads"></i>
-                        </button>
                         <button class="social-network-btn" data-network="vk" onclick="filterByNetwork('vk')" title="VK">
                             <i class="fab fa-vk"></i>
                         </button>
@@ -283,25 +275,6 @@
 
                     <!-- Formulario Principal -->
                     <div class="order-form-card">
-                        <!-- Búsqueda -->
-                        <div class="form-group search-group">
-                            <div class="search-input-wrapper">
-                                <i class="fas fa-search"></i>
-                                <input type="text" id="create-service-search" placeholder="Buscar" class="search-input">
-                            </div>
-                        </div>
-
-                        <!-- Categoría -->
-                        <div class="form-group">
-                            <label for="create-category-select">
-                                <i class="fas fa-rocket"></i>
-                                Categoría
-                            </label>
-                            <select id="create-category-select" class="form-select">
-                                <option value="">Nuevos servicios</option>
-                            </select>
-                        </div>
-
                         <!-- Servicio -->
                         <div class="form-group">
                             <label for="create-service-select">Servicio</label>
