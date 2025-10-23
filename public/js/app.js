@@ -20,6 +20,25 @@ let appState = {
     currentPageIndex: 0
 };
 
+// ==================== FUNCIONES DE FORMATO ====================
+
+// Formatear precio de balance (2 decimales)
+function formatBalance(amount) {
+    return `$${parseFloat(amount).toFixed(2)}`;
+}
+
+// Formatear precio de servicio (4 decimales)
+function formatServicePrice(amount) {
+    return `$${parseFloat(amount).toFixed(4)}`;
+}
+
+// Formatear cantidad con separadores de miles
+function formatQuantity(quantity) {
+    return parseInt(quantity).toLocaleString('es-ES');
+}
+
+// ==================== ÍNDICE DE BÚSQUEDA ====================
+
 // Índice de búsqueda optimizado para servicios
 class ServiceSearchIndex {
     constructor(services) {
@@ -345,6 +364,8 @@ async function loadPageData(page) {
             setupServicesPage();
             break;
         case 'create-order':
+            await loadBalance();
+            updateCreateOrderBalance();
             setupCreateOrderPage();
             break;
         case 'orders':
@@ -2224,9 +2245,9 @@ function updateCostSummary() {
     const total = (quantity / 1000) * rate;
     const remaining = appState.balance - total;
     
-    document.getElementById('summary-quantity').textContent = quantity.toLocaleString();
-    document.getElementById('summary-total').textContent = `$${total.toFixed(4)}`;
-    document.getElementById('summary-remaining').textContent = `$${remaining.toFixed(4)}`;
+    document.getElementById('summary-quantity').textContent = formatQuantity(quantity);
+    document.getElementById('summary-total').textContent = formatServicePrice(total);
+    document.getElementById('summary-remaining').textContent = formatServicePrice(remaining);
     
     // Cambiar color si no hay suficiente balance
     const remainingEl = document.getElementById('summary-remaining');
@@ -3676,42 +3697,62 @@ function showPageLoading(show, message = 'Cargando...') {
 
 // Filtrar servicios
 function filterServices() {
-    const searchTerm = document.getElementById('services-search')?.value.toLowerCase() || '';
+    console.log('🔍 Filtrando servicios...');
+    
+    const searchTerm = document.getElementById('services-search')?.value.toLowerCase().trim() || '';
     const socialNetwork = document.getElementById('social-network-filter')?.value || '';
     const category = document.getElementById('category-filter')?.value || '';
     const type = document.getElementById('type-filter')?.value || '';
     const sortBy = document.getElementById('sort-filter')?.value || 'name';
     
+    console.log('Filtros aplicados:', { searchTerm, socialNetwork, category, type, sortBy });
+    
+    // Verificar que tenemos servicios cargados
+    if (!appState.allServices || appState.allServices.length === 0) {
+        console.warn('⚠️ No hay servicios cargados para filtrar');
+        return;
+    }
+    
     let filtered = appState.showingFavorites 
         ? appState.allServices.filter(s => appState.favoriteServices.includes(s.service))
         : [...appState.allServices];
     
-    // Aplicar filtros
+    console.log(`Servicios iniciales: ${filtered.length}`);
+    
+    // Aplicar filtro de búsqueda
     if (searchTerm) {
         filtered = filtered.filter(service => 
             service.name.toLowerCase().includes(searchTerm) ||
-            service.category.toLowerCase().includes(searchTerm)
+            service.category.toLowerCase().includes(searchTerm) ||
+            (service.type && service.type.toLowerCase().includes(searchTerm))
         );
+        console.log(`Después de búsqueda: ${filtered.length}`);
     }
     
-    // Filtro de red social (nuevo)
+    // Filtro de red social
     if (socialNetwork) {
         filtered = filtered.filter(service => 
             service.category.toLowerCase().includes(socialNetwork.toLowerCase()) ||
             service.name.toLowerCase().includes(socialNetwork.toLowerCase())
         );
+        console.log(`Después de red social: ${filtered.length}`);
     }
     
+    // Filtro de categoría
     if (category) {
         filtered = filtered.filter(service => 
             service.category.toLowerCase().includes(category.toLowerCase())
         );
+        console.log(`Después de categoría: ${filtered.length}`);
     }
     
+    // Filtro de tipo
     if (type) {
         filtered = filtered.filter(service => 
-            service.name.toLowerCase().includes(type.toLowerCase())
+            service.name.toLowerCase().includes(type.toLowerCase()) ||
+            (service.type && service.type.toLowerCase().includes(type.toLowerCase()))
         );
+        console.log(`Después de tipo: ${filtered.length}`);
     }
     
     // Ordenar
@@ -3725,15 +3766,33 @@ function filterServices() {
         case 'name':
             filtered.sort((a, b) => a.name.localeCompare(b.name));
             break;
+        case 'popular':
+            // Ordenar por popularidad (puedes ajustar este criterio)
+            filtered.sort((a, b) => parseFloat(b.rate) - parseFloat(a.rate));
+            break;
     }
     
     appState.filteredServices = filtered;
+    console.log(`✅ Servicios filtrados: ${filtered.length}`);
     
     // Renderizar servicios filtrados
     const servicesGrid = document.getElementById('services-grid');
     if (servicesGrid) {
-        servicesGrid.innerHTML = '';
-        renderServicesInBatches(filtered, servicesGrid);
+        if (filtered.length === 0) {
+            servicesGrid.innerHTML = `
+                <div class="no-services-found">
+                    <i class="fas fa-search"></i>
+                    <h3>No se encontraron servicios</h3>
+                    <p>Intenta ajustar los filtros de búsqueda</p>
+                    <button class="btn btn-primary" onclick="clearFilters()">
+                        <i class="fas fa-times"></i> Limpiar Filtros
+                    </button>
+                </div>
+            `;
+        } else {
+            servicesGrid.innerHTML = '';
+            renderServicesInBatches(filtered, servicesGrid);
+        }
     }
     
     updateServicesStats(filtered);
@@ -3834,8 +3893,94 @@ function updateServicesStats(services) {
     }
 }
 
+// ==================== FUNCIONES PARA CREAR ORDEN ====================
+
+// Variable global para almacenar la red social seleccionada
+let selectedNetwork = 'all';
+
+// Filtrar servicios por red social en la página de crear orden
+function filterByNetwork(network) {
+    console.log('🔍 Filtrando por red social:', network);
+    selectedNetwork = network;
+    
+    // Actualizar botones activos
+    const buttons = document.querySelectorAll('.social-network-btn');
+    buttons.forEach(btn => {
+        if (btn.dataset.network === network) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    // Filtrar y actualizar el selector de servicios
+    updateServiceSelector(network);
+}
+
+// Actualizar selector de servicios basado en la red social
+function updateServiceSelector(network) {
+    const serviceSelect = document.getElementById('create-service-select');
+    if (!serviceSelect || !appState.allServices) return;
+    
+    let filteredServices = appState.allServices;
+    
+    if (network && network !== 'all') {
+        filteredServices = appState.allServices.filter(service => 
+            service.name.toLowerCase().includes(network.toLowerCase()) ||
+            service.category.toLowerCase().includes(network.toLowerCase())
+        );
+    }
+    
+    // Limpiar y repoblar el selector
+    serviceSelect.innerHTML = '<option value="">Selecciona un servicio</option>';
+    
+    // Agrupar por categoría
+    const servicesByCategory = {};
+    filteredServices.forEach(service => {
+        if (!servicesByCategory[service.category]) {
+            servicesByCategory[service.category] = [];
+        }
+        servicesByCategory[service.category].push(service);
+    });
+    
+    // Agregar opciones agrupadas
+    Object.keys(servicesByCategory).sort().forEach(category => {
+        const optgroup = document.createElement('optgroup');
+        optgroup.label = category;
+        
+        servicesByCategory[category].forEach(service => {
+            const option = document.createElement('option');
+            option.value = service.service;
+            const price = (parseFloat(service.rate) * 1.2).toFixed(4);
+            option.textContent = `${service.name} - $${price}/1k`;
+            option.dataset.service = JSON.stringify(service);
+            optgroup.appendChild(option);
+        });
+        
+        serviceSelect.appendChild(optgroup);
+    });
+    
+    console.log(`✅ Selector actualizado con ${filteredServices.length} servicios`);
+}
+
+// Mostrar modal con todas las redes sociales
+function showAllNetworks() {
+    showToast('Mostrando todas las redes sociales disponibles', 'info');
+    filterByNetwork('all');
+}
+
+// Actualizar balance en la página de crear orden
+function updateCreateOrderBalance() {
+    const balanceEl = document.getElementById('create-order-balance');
+    if (balanceEl) {
+        balanceEl.textContent = formatBalance(appState.balance);
+    }
+}
+
 // Exponer funciones globalmente
 window.filterServices = filterServices;
 window.clearFilters = clearFilters;
 window.showFavorites = showFavorites;
 window.toggleFavorite = toggleFavorite;
+window.filterByNetwork = filterByNetwork;
+window.showAllNetworks = showAllNetworks;
