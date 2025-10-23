@@ -2173,14 +2173,40 @@ function updateOrderPreview(service) {
 
 // Mostrar detalles del servicio
 function showServiceDetails(service) {
-    // Actualizar la información en la tarjeta de detalles
-    document.getElementById('detail-category').textContent = service.category;
-    document.getElementById('detail-type').textContent = service.type || 'Default';
-    document.getElementById('detail-rate').textContent = `$${(parseFloat(service.rate) * 1.2).toFixed(4)}`;
-    document.getElementById('detail-min').textContent = service.min;
-    document.getElementById('detail-max').textContent = service.max;
+    console.log('📋 Mostrando detalles del servicio:', service);
+    
+    // Actualizar información de tiempo y características
+    const detailStart = document.getElementById('detail-start');
+    const detailSpeed = document.getElementById('detail-speed');
+    const detailDrop = document.getElementById('detail-drop');
+    const detailWarranty = document.getElementById('detail-warranty');
+    
+    if (detailStart) detailStart.textContent = '0 - 12 HORAS';
+    if (detailSpeed) detailSpeed.textContent = '500 - 1000 horas por día';
+    if (detailDrop) detailDrop.textContent = 'NON DROP';
+    if (detailWarranty) detailWarranty.textContent = '30 días de garantía';
+    
+    // Actualizar precios e información del servicio
+    const detailRate = document.getElementById('detail-rate');
+    const detailMin = document.getElementById('detail-min');
+    const detailMax = document.getElementById('detail-max');
+    
+    const price = (parseFloat(service.rate) * 1.2).toFixed(4);
+    
+    if (detailRate) {
+        detailRate.textContent = formatServicePrice(parseFloat(service.rate) * 1.2);
+        console.log('💰 Precio actualizado:', detailRate.textContent);
+    }
+    if (detailMin) {
+        detailMin.textContent = formatQuantity(service.min);
+        console.log('📊 Mínimo:', detailMin.textContent);
+    }
+    if (detailMax) {
+        detailMax.textContent = formatQuantity(service.max);
+        console.log('📊 Máximo:', detailMax.textContent);
+    }
 
-    // Actualizar características del servicio
+    // Actualizar características del servicio (si existe el elemento)
     const featuresList = document.getElementById('service-features-list');
     if (featuresList) {
         featuresList.innerHTML = '';
@@ -2212,11 +2238,14 @@ function showServiceDetails(service) {
     const serviceDetails = document.getElementById('service-details');
     if (serviceDetails) {
         serviceDetails.style.display = 'block';
+        console.log('✅ Detalles del servicio mostrados');
     }
 }
 
 // Mostrar formulario de orden
 function showOrderForm(service) {
+    console.log('📝 Mostrando formulario de orden para:', service.name);
+    
     const form = document.getElementById('create-order-form');
     const quantityInput = document.getElementById('create-order-quantity');
     const quantityRange = document.getElementById('quantity-range');
@@ -2225,15 +2254,31 @@ function showOrderForm(service) {
         quantityInput.min = service.min;
         quantityInput.max = service.max;
         quantityInput.placeholder = service.min;
-        quantityRange.textContent = `Min: ${service.min} | Max: ${service.max}`;
+        if (quantityRange) {
+            quantityRange.textContent = `Min: ${formatQuantity(service.min)} | Max: ${formatQuantity(service.max)}`;
+        }
     }
 
     // Actualizar balance en el resumen
-    document.getElementById('summary-balance').textContent = `$${appState.balance.toFixed(4)}`;
-    document.getElementById('summary-rate').textContent = `$${(parseFloat(service.rate) * 1.2).toFixed(4)}`;
+    const summaryBalance = document.getElementById('summary-balance');
+    const summaryRate = document.getElementById('summary-rate');
+    
+    if (summaryBalance) {
+        summaryBalance.textContent = formatServicePrice(appState.balance);
+        console.log('💰 Balance en resumen:', summaryBalance.textContent);
+    }
+    
+    if (summaryRate) {
+        summaryRate.textContent = formatServicePrice(parseFloat(service.rate) * 1.2);
+        console.log('💵 Precio por 1000:', summaryRate.textContent);
+    }
 
-    form.style.display = 'block';
+    if (form) {
+        form.style.display = 'block';
+    }
+    
     appState.selectedService = service;
+    console.log('✅ Formulario de orden mostrado');
 }
 
 // Función para cerrar los detalles del servicio
