@@ -1306,7 +1306,7 @@ function requestRecharge() {
                    `¿Podrían ayudarme con el proceso de pago?`;
     
     // Número de WhatsApp actualizado
-    const phoneNumber = '5491138520755'; // +54 9 11 3852-0755
+    const phoneNumber = '5491124620014'; // +54 9 11 3852-0755
     const encodedMessage = encodeURIComponent(message);
     const whatsappUrl = `https://wa.me/${phoneNumber}?text=${encodedMessage}`;
     
