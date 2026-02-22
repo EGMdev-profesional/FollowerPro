@@ -1,5 +1,6 @@
 const { query, transaction } = require('../config/database');
 const User = require('./User');
+const { getSmmCoderClient } = require('../services/smmcoderClient');
 
 class Order {
     constructor(data) {
@@ -91,10 +92,9 @@ class Order {
             console.log(`✅ Balance actualizado: $${balanceActual} -> $${nuevoBalance}`);
 
             // 5b. Crear orden
-            const orderIdUnique = `ORD-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
             const [orderResult] = await connection.execute(
-                'INSERT INTO ordenes (usuario_id, service_id, link, quantity, charge, status, order_id, currency) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                [userId, service_id, link, quantity, costoTotal, 'Pending', orderIdUnique, 'USD']
+                'INSERT INTO ordenes (usuario_id, service_id, link, quantity, charge, status, order_id, currency) VALUES (?, ?, ?, ?, ?, ?, NULL, ?)',
+                [userId, service_id, link, quantity, costoTotal, 'Pending', 'USD']
             );
             const orderId = orderResult.insertId;
             console.log(`✅ Orden creada con ID: ${orderId}`);
@@ -155,45 +155,28 @@ class Order {
 
     // Enviar orden a SMMCoder API
     static async sendToSMMCoder(orderId, serviceId, link, quantity) {
-        const axios = require('axios');
-
         try {
             console.log(`📡 Enviando orden #${orderId} a SMMCoder API...`);
             console.log(`Servicio: ${serviceId}, Cantidad: ${quantity}, Link: ${link}`);
 
-            const response = await axios.post(process.env.SMMCODER_API_URL, {
-                key: process.env.SMMCODER_API_KEY,
-                action: 'add',
+            const client = getSmmCoderClient();
+            const data = await client.addOrder({
                 service: serviceId,
-                link: link,
-                quantity: quantity
-            }, {
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                },
-                timeout: 15000 // 15 segundos timeout
+                link,
+                quantity
             });
 
-            console.log('📥 Respuesta de SMMCoder:', response.data);
+            console.log('📥 Respuesta de SMMCoder:', data);
 
-            if (response.data && response.data.order) {
-                console.log(`✅ Orden enviada exitosamente con ID externo: ${response.data.order}`);
-                return response.data.order;
+            if (data && data.order) {
+                console.log(`✅ Orden enviada exitosamente con ID externo: ${data.order}`);
+                return data.order;
             } else {
-                throw new Error(`Respuesta inválida de SMMCoder: ${JSON.stringify(response.data)}`);
+                throw new Error(`Respuesta inválida de SMMCoder: ${JSON.stringify(data)}`);
             }
 
         } catch (error) {
             console.error(`❌ Error enviando orden #${orderId} a SMMCoder:`, error.message);
-
-            if (error.response) {
-                console.error('Status:', error.response.status);
-                console.error('Data:', error.response.data);
-            }
-
-            if (error.code === 'ECONNREFUSED') {
-                console.error('🔌 No se pudo conectar con SMMCoder API');
-            }
 
             throw error;
         }
@@ -207,7 +190,10 @@ class Order {
         
         let sql = `
             SELECT o.*, s.name as service_name, s.category, s.type,
-                   COALESCE(o.order_id, CONCAT('LOCAL-', o.id)) as display_order_id
+                   CASE
+                       WHEN o.order_id IS NOT NULL AND o.order_id NOT LIKE 'ORD-%' THEN o.order_id
+                       ELSE 'Pendiente'
+                   END as display_order_id
             FROM ordenes o
             LEFT JOIN servicios_cache s ON o.service_id = s.service_id
             WHERE o.usuario_id = ?
@@ -234,7 +220,10 @@ class Order {
     static async getById(orderId, userId = null) {
         let sql = `
             SELECT o.*, s.name as service_name, s.category, s.type,
-                   COALESCE(o.order_id, CONCAT('LOCAL-', o.id)) as display_order_id
+                   CASE
+                       WHEN o.order_id IS NOT NULL AND o.order_id NOT LIKE 'ORD-%' THEN o.order_id
+                       ELSE 'Pendiente'
+                   END as display_order_id
             FROM ordenes o
             LEFT JOIN servicios_cache s ON o.service_id = s.service_id
             WHERE o.id = ?
@@ -331,24 +320,25 @@ class Order {
                 LIMIT 100
             `);
 
-            const axios = require('axios');
+            const client = getSmmCoderClient();
             
             for (const order of pendingOrders) {
                 try {
-                    const response = await axios.post(process.env.SMMCODER_API_URL, {
-                        key: process.env.SMMCODER_API_KEY,
-                        action: 'status',
-                        order: order.order_id
-                    });
+                    const data = await client.status(order.order_id);
 
-                    if (response.data && response.data.status) {
-                        const newStatus = response.data.status;
-                        const startCount = response.data.start_count || order.start_count;
-                        const remains = response.data.remains || order.remains;
+                    if (data && data.status) {
+                        const rawStatus = String(data.status);
+                        const newStatus = this.normalizeExternalStatus(rawStatus);
+                        const startCount = data.start_count ?? order.start_count;
+                        const remains = data.remains ?? order.remains;
 
                         if (newStatus !== order.status) {
                             await this.updateStatus(order.id, newStatus, startCount, remains);
                             console.log(`Orden #${order.id} actualizada: ${order.status} -> ${newStatus}`);
+                        }
+
+                        if (newStatus === 'Canceled') {
+                            await this.refundIfNeeded(order, `Cancelada en proveedor (SMMCoder): ${rawStatus}`);
                         }
                     }
 
@@ -365,6 +355,185 @@ class Order {
         } catch (error) {
             console.error('Error en sincronización general:', error.message);
         }
+    }
+
+    static normalizeExternalStatus(status) {
+        const s = String(status || '').trim().toLowerCase();
+        if (!s) return status;
+
+        if (s === 'cancelado' || s === 'cancelled' || s === 'canceled' || s === 'cancel') {
+            return 'Canceled';
+        }
+
+        if (s === 'in progress' || s === 'in_progress' || s === 'inprogress') {
+            return 'In progress';
+        }
+
+        if (s === 'completed' || s === 'complete') {
+            return 'Completed';
+        }
+
+        if (s === 'pending') {
+            return 'Pending';
+        }
+
+        if (s === 'partial') {
+            return 'Partial';
+        }
+
+        if (s === 'processing') {
+            return 'Processing';
+        }
+
+        return status;
+    }
+
+    static async refundIfNeeded(orderRow, reason) {
+        const orderId = orderRow.id;
+        const userId = orderRow.usuario_id;
+
+        const existing = await query('SELECT status, notas, charge FROM ordenes WHERE id = ?', [orderId]);
+        if (existing.length === 0) return;
+        const current = existing[0];
+        const notas = current.notas || '';
+        if (String(notas).includes('[REFUNDED]')) {
+            return;
+        }
+
+        const charge = parseFloat(current.charge) || 0;
+        if (charge <= 0) {
+            await query('UPDATE ordenes SET notas = CONCAT(COALESCE(notas, ""), "\n[REFUNDED] skipped: charge=0") WHERE id = ?', [orderId]);
+            return;
+        }
+
+        await transaction(async (connection) => {
+            const [users] = await connection.execute('SELECT balance FROM usuarios WHERE id = ? FOR UPDATE', [userId]);
+            if (!users || users.length === 0) {
+                throw new Error('Usuario no encontrado para reembolso');
+            }
+            const balanceAnterior = parseFloat(users[0].balance) || 0;
+            const balanceNuevo = balanceAnterior + charge;
+
+            await connection.execute('UPDATE usuarios SET balance = ? WHERE id = ?', [balanceNuevo, userId]);
+
+            await connection.execute(
+                'INSERT INTO transacciones (usuario_id, tipo, monto, balance_anterior, balance_nuevo, descripcion, orden_id, estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                [userId, 'refund', charge, balanceAnterior, balanceNuevo, reason, orderId, 'completada']
+            );
+
+            await connection.execute(
+                'INSERT INTO logs_sistema (usuario_id, accion, descripcion, nivel, datos_adicionales) VALUES (?, ?, ?, ?, ?)',
+                [userId, 'order_refund', `Reembolso automático por orden #${orderId}`, 'info', JSON.stringify({ order_id: orderId, amount: charge, reason })]
+            );
+
+            await connection.execute(
+                'UPDATE ordenes SET notas = CONCAT(COALESCE(notas, ""), "\n[REFUNDED] ", ?) WHERE id = ?',
+                [reason, orderId]
+            );
+        });
+
+        console.log(`💸 Reembolso automático aplicado a orden #${orderId}: +$${charge.toFixed(4)} (usuario ${userId})`);
+    }
+
+    static async processLocalPendingOrders() {
+        const maxAgeMs = Number(process.env.ORDER_PENDING_MAX_AGE_MS || 24 * 60 * 60 * 1000);
+
+        const localPending = await query(`
+            SELECT * FROM ordenes
+            WHERE status = 'Pending'
+            AND (order_id LIKE 'ORD-%' OR order_id IS NULL)
+            ORDER BY fecha_creacion ASC
+            LIMIT 50
+        `);
+
+        if (localPending.length === 0) return;
+
+        const client = getSmmCoderClient();
+
+        for (const order of localPending) {
+            try {
+                const notas = order.notas || '';
+                if (String(notas).includes('[AUTO_CANCELED]')) {
+                    continue;
+                }
+
+                const createdAt = order.fecha_creacion ? new Date(order.fecha_creacion) : null;
+                const ageMs = createdAt ? Date.now() - createdAt.getTime() : 0;
+
+                if (createdAt && ageMs >= maxAgeMs) {
+                    await this.autoCancelLocalPending(order, `Orden Pending sin enviar por más de ${Math.round(ageMs / (60 * 60 * 1000))}h`);
+                    continue;
+                }
+
+                const data = await client.addOrder({
+                    service: order.service_id,
+                    link: order.link,
+                    quantity: order.quantity
+                });
+
+                if (data && data.order) {
+                    await query(
+                        'UPDATE ordenes SET order_id = ?, status = ?, notas = CONCAT(COALESCE(notas, ""), "\n[RETRY_SENT] Enviada por retry automático") WHERE id = ?',
+                        [String(data.order), 'In progress', order.id]
+                    );
+                } else {
+                    await query(
+                        'UPDATE ordenes SET notas = CONCAT(COALESCE(notas, ""), "\n[RETRY_FAILED] Respuesta inválida") WHERE id = ?',
+                        [order.id]
+                    );
+                }
+            } catch (error) {
+                const msg = String(error.message || 'error').slice(0, 500);
+                await query(
+                    'UPDATE ordenes SET notas = CONCAT(COALESCE(notas, ""), "\n[RETRY_FAILED] ", ?) WHERE id = ?',
+                    [msg, order.id]
+                );
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 250));
+        }
+    }
+
+    static async autoCancelLocalPending(orderRow, reason) {
+        const orderId = orderRow.id;
+        const userId = orderRow.usuario_id;
+
+        await transaction(async (connection) => {
+            const [orders] = await connection.execute(
+                'SELECT id, usuario_id, status, notas, charge FROM ordenes WHERE id = ? FOR UPDATE',
+                [orderId]
+            );
+            if (!orders || orders.length === 0) return;
+            const order = orders[0];
+            const notas = order.notas || '';
+            if (String(notas).includes('[AUTO_CANCELED]')) return;
+
+            await connection.execute(
+                'UPDATE ordenes SET status = ?, notas = CONCAT(COALESCE(notas, ""), "\n[AUTO_CANCELED] ", ?) WHERE id = ?',
+                ['Canceled', reason, orderId]
+            );
+
+            const charge = parseFloat(order.charge) || 0;
+            if (charge > 0) {
+                const [users] = await connection.execute('SELECT balance FROM usuarios WHERE id = ? FOR UPDATE', [userId]);
+                if (!users || users.length === 0) {
+                    throw new Error('Usuario no encontrado para auto-cancelación');
+                }
+                const balanceAnterior = parseFloat(users[0].balance) || 0;
+                const balanceNuevo = balanceAnterior + charge;
+
+                await connection.execute('UPDATE usuarios SET balance = ? WHERE id = ?', [balanceNuevo, userId]);
+                await connection.execute(
+                    'INSERT INTO transacciones (usuario_id, tipo, monto, balance_anterior, balance_nuevo, descripcion, orden_id, estado) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                    [userId, 'refund', charge, balanceAnterior, balanceNuevo, `Auto-cancelación orden #${orderId}: ${reason}`, orderId, 'completada']
+                );
+            }
+
+            await connection.execute(
+                'INSERT INTO logs_sistema (usuario_id, accion, descripcion, nivel, datos_adicionales) VALUES (?, ?, ?, ?, ?)',
+                [userId, 'order_auto_cancel', `Orden #${orderId} auto-cancelada`, 'warning', JSON.stringify({ order_id: orderId, reason })]
+            );
+        });
     }
 
     // Obtener todas las órdenes (para admin)

@@ -8,6 +8,7 @@ require('dotenv').config();
 // Importar configuración de base de datos
 const { initDatabase } = require('./config/database');
 const User = require('./models/User');
+const Order = require('./models/Order');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -172,6 +173,48 @@ async function startServer() {
         
         // Crear usuario administrador si no existe
         await User.createAdmin();
+
+        // Sincronización periódica de estados con SMMCoder (background)
+        const enableOrderSync = String(process.env.ENABLE_ORDER_SYNC || 'true').toLowerCase() === 'true';
+        const syncIntervalMs = Number(process.env.ORDER_SYNC_INTERVAL_MS || 120000);
+        if (enableOrderSync) {
+            let isSyncRunning = false;
+            setInterval(async () => {
+                if (isSyncRunning) return;
+                isSyncRunning = true;
+                try {
+                    await Order.syncWithSMMCoder();
+                } catch (err) {
+                    console.error('⚠️ Error en syncWithSMMCoder:', err.message);
+                } finally {
+                    isSyncRunning = false;
+                }
+            }, syncIntervalMs);
+            console.log(`🔄 Sync de órdenes habilitado cada ${Math.round(syncIntervalMs / 1000)}s`);
+        } else {
+            console.log('⏸️ Sync de órdenes deshabilitado (ENABLE_ORDER_SYNC=false)');
+        }
+
+        // Reintentar órdenes Pending locales (sin ID externo) y auto-cancelar si expiran
+        const enableLocalPendingRetry = String(process.env.ENABLE_LOCAL_PENDING_RETRY || 'true').toLowerCase() === 'true';
+        const localPendingIntervalMs = Number(process.env.LOCAL_PENDING_RETRY_INTERVAL_MS || 10 * 60 * 1000);
+        if (enableLocalPendingRetry) {
+            let isLocalRetryRunning = false;
+            setInterval(async () => {
+                if (isLocalRetryRunning) return;
+                isLocalRetryRunning = true;
+                try {
+                    await Order.processLocalPendingOrders();
+                } catch (err) {
+                    console.error('⚠️ Error en processLocalPendingOrders:', err.message);
+                } finally {
+                    isLocalRetryRunning = false;
+                }
+            }, localPendingIntervalMs);
+            console.log(`🔁 Retry de órdenes Pending locales habilitado cada ${Math.round(localPendingIntervalMs / 1000)}s`);
+        } else {
+            console.log('⏸️ Retry de órdenes Pending locales deshabilitado (ENABLE_LOCAL_PENDING_RETRY=false)');
+        }
         
         // Iniciar servidor
         app.listen(PORT, () => {

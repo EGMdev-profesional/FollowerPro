@@ -5,27 +5,19 @@ const router = express.Router();
 const API_URL = process.env.SMMCODER_API_URL;
 const API_KEY = process.env.SMMCODER_API_KEY;
 
+const { getSmmCoderClient } = require('../services/smmcoderClient');
+
 // Función helper para hacer requests a SMMCoder
 async function smmCoderRequest(action, params = {}) {
     try {
-        const data = {
-            key: API_KEY,
-            action: action,
-            ...params
-        };
-
-        const response = await axios.post(API_URL, data, {
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
-        });
-
-        return { success: true, data: response.data };
+        const client = getSmmCoderClient();
+        const data = await client.request(action, params);
+        return { success: true, data };
     } catch (error) {
         console.error('Error en SMMCoder API:', error.message);
         return {
             success: false,
-            error: error.response?.data || error.message
+            error: error.data || error.message
         };
     }
 }
