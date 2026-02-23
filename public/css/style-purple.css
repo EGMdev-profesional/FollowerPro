@@ -255,6 +255,46 @@ body {
     box-shadow: var(--shadow);
 }
 
+.services-search {
+    position: relative;
+    background: var(--card-background);
+    padding: 0.25rem;
+    border-radius: var(--border-radius);
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+}
+
+.services-search i {
+    position: absolute;
+    left: 1.25rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    pointer-events: none;
+}
+
+.services-search input {
+    width: 100%;
+    border: none;
+    background: transparent;
+    color: var(--text-primary);
+    padding: 0.95rem 1.25rem 0.95rem 3rem;
+    border-radius: calc(var(--border-radius) - 2px);
+    font-size: 0.95rem;
+    outline: none;
+}
+
+.services-search input::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.85;
+}
+
+.services-search:focus-within {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
+}
+
 .filter-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
