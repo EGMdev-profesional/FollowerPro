@@ -226,10 +226,19 @@ body::before {
 /* Password input con toggle */
 .password-input {
     position: relative;
+    width: 100%;
 }
 
 .password-input input {
+    width: 100%;
     padding-right: 2.5rem;
+}
+
+.form-footer {
+    display: flex;
+    justify-content: center;
+    margin-top: -10px;
+    margin-bottom: 10px;
 }
 
 .toggle-password {
