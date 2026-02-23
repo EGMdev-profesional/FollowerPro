@@ -85,10 +85,10 @@ class User {
         }
 
         // Actualizar última conexión
-        await this.updateLastLogin(userData.id);
+        this.updateLastLogin(userData.id).catch(() => {});
         
         // Log de login
-        await this.logAction(userData.id, 'login', 'Usuario inició sesión');
+        this.logAction(userData.id, 'login', 'Usuario inició sesión').catch(() => {});
 
         return new User(userData);
     }
