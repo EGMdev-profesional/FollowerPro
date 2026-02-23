@@ -87,34 +87,61 @@ async function resetPassword(token, newPassword) {
 
     const tokenHash = hashToken(token);
 
-    await transaction(async (connection) => {
-        const [rows] = await connection.execute(
-            `SELECT id, user_id, expires_at, used_at FROM password_resets WHERE token_hash = ? ORDER BY id DESC LIMIT 1 FOR UPDATE`,
-            [tokenHash]
-        );
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
 
-        if (!rows || rows.length === 0) {
-            throw new Error('Token inválido o expirado');
+    const maxAttempts = 2;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+        try {
+            await transaction(async (connection) => {
+                const [rows] = await connection.execute(
+                    `SELECT id, user_id, expires_at, used_at
+                     FROM password_resets
+                     WHERE token_hash = ?
+                     ORDER BY id DESC
+                     LIMIT 1`,
+                    [tokenHash]
+                );
+
+                if (!rows || rows.length === 0) {
+                    throw new Error('Token inválido o expirado');
+                }
+
+                const reset = rows[0];
+
+                if (reset.used_at) {
+                    throw new Error('Token ya utilizado');
+                }
+
+                const expiresAt = new Date(reset.expires_at);
+                if (Date.now() > expiresAt.getTime()) {
+                    throw new Error('Token expirado');
+                }
+
+                const [mark] = await connection.execute(
+                    'UPDATE password_resets SET used_at = NOW() WHERE id = ? AND used_at IS NULL',
+                    [reset.id]
+                );
+
+                if (!mark || mark.affectedRows !== 1) {
+                    throw new Error('Token ya utilizado');
+                }
+
+                await connection.execute('UPDATE usuarios SET password = ? WHERE id = ?', [hashedPassword, reset.user_id]);
+                await User.logAction(reset.user_id, 'password_reset', 'Contraseña restablecida por recovery', 'info');
+            });
+
+            break;
+        } catch (err) {
+            const code = err && (err.code || err.errno);
+            const msg = String(err && err.message || 'error');
+            const isLockWait = code === 'ER_LOCK_WAIT_TIMEOUT' || msg.toLowerCase().includes('lock wait timeout');
+            if (isLockWait && attempt < maxAttempts) {
+                await new Promise(r => setTimeout(r, 250));
+                continue;
+            }
+            throw err;
         }
-
-        const reset = rows[0];
-
-        if (reset.used_at) {
-            throw new Error('Token ya utilizado');
-        }
-
-        const expiresAt = new Date(reset.expires_at);
-        if (Date.now() > expiresAt.getTime()) {
-            throw new Error('Token expirado');
-        }
-
-        const hashedPassword = await bcrypt.hash(newPassword, 10);
-
-        await connection.execute('UPDATE usuarios SET password = ? WHERE id = ?', [hashedPassword, reset.user_id]);
-        await connection.execute('UPDATE password_resets SET used_at = NOW() WHERE id = ?', [reset.id]);
-
-        await User.logAction(reset.user_id, 'password_reset', 'Contraseña restablecida por recovery', 'info');
-    });
+    }
 }
 
 module.exports = {
