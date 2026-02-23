@@ -2125,6 +2125,62 @@ function setupCreateOrderEvents() {
             }
         });
     }
+
+    function selectServiceFromSearch() {
+        if (!serviceSearch || !serviceSelect) return;
+
+        const term = String(serviceSearch.value || '').toLowerCase().trim();
+        if (!term) return;
+
+        const numeric = term.replace(/\D/g, '');
+
+        const visibleOptions = Array.from(serviceSelect.querySelectorAll('option'))
+            .filter(o => o.value && !o.hidden);
+        const allOptions = Array.from(serviceSelect.querySelectorAll('option'))
+            .filter(o => o.value);
+
+        const optionsToSearch = visibleOptions.length > 0 ? visibleOptions : allOptions;
+
+        let match = null;
+
+        if (numeric) {
+            match = optionsToSearch.find(o => String(o.value) === numeric);
+            if (!match) match = optionsToSearch.find(o => String(o.value).includes(numeric));
+        }
+
+        if (!match) {
+            match = optionsToSearch.find(o => (o.textContent || '').toLowerCase().includes(term));
+        }
+
+        if (match) {
+            // Asegurar visibilidad si estaba oculto
+            try { match.hidden = false; } catch (_) {}
+            const group = match.parentElement && match.parentElement.tagName === 'OPTGROUP' ? match.parentElement : null;
+            if (group) {
+                try { group.hidden = false; } catch (_) {}
+            }
+
+            serviceSelect.value = match.value;
+            serviceSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            try { serviceSelect.focus(); } catch (_) {}
+            try { serviceSelect.scrollIntoView({ block: 'center' }); } catch (_) {}
+        } else {
+            showToast('No se encontró un servicio con esa búsqueda', 'warning');
+        }
+    }
+
+    if (serviceSearchBtn) {
+        serviceSearchBtn.addEventListener('click', selectServiceFromSearch);
+    }
+
+    if (serviceSearch) {
+        serviceSearch.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                selectServiceFromSearch();
+            }
+        });
+    }
     
     // Evento de cambio de servicio
     if (serviceSelect) {

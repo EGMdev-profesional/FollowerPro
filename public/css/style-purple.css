@@ -309,6 +309,13 @@ body {
     border-radius: calc(var(--border-radius) - 4px);
 }
 
+@media (max-width: 480px) {
+    .create-order-search button {
+        padding: 0.5rem 0.7rem;
+        font-size: 0.85rem;
+    }
+}
+
 .services-search input::placeholder {
     color: var(--text-secondary);
     opacity: 0.85;
