@@ -4019,8 +4019,15 @@ body {
     transition: transform 0.3s ease;
 }
 
-.service-info-item:hover::before {
-    transform: scaleY(1);
+.service-id {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    background: rgba(139, 92, 246, 0.08);
+    border: 1px solid rgba(139, 92, 246, 0.18);
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+    line-height: 1;
 }
 
 .service-info-item:hover {

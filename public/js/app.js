@@ -1505,6 +1505,7 @@ function createOptimizedServiceCard(service) {
     card.innerHTML = `
         <div class="service-header">
             <div class="service-category">${service.category}</div>
+            <div class="service-id">#${service.service}</div>
             <button class="service-favorite ${favoriteClass}" onclick="toggleFavorite(${service.service})" title="${isFavorite ? 'Quitar de favoritos' : 'Agregar a favoritos'}">
                 <i class="${favoriteIcon}"></i>
             </button>
@@ -2339,13 +2340,15 @@ function updateOrderPreview(service) {
 // Mostrar detalles del servicio
 function showServiceDetails(service) {
     console.log('📋 Mostrando detalles del servicio:', service);
-    
+
     // Actualizar información de tiempo y características
+    const detailId = document.getElementById('detail-id');
     const detailStart = document.getElementById('detail-start');
     const detailSpeed = document.getElementById('detail-speed');
     const detailDrop = document.getElementById('detail-drop');
     const detailWarranty = document.getElementById('detail-warranty');
     
+    if (detailId) detailId.textContent = service && service.service ? String(service.service) : '-';
     if (detailStart) detailStart.textContent = '0 - 12 HORAS';
     if (detailSpeed) detailSpeed.textContent = '500 - 1000 horas por día';
     if (detailDrop) detailDrop.textContent = 'NON DROP';
