@@ -3,6 +3,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 const router = express.Router();
+const { requestPasswordReset, resetPassword } = require('../services/passwordResetService');
 
 // Middleware para verificar token JWT
 const authenticateToken = (req, res, next) => {
@@ -381,6 +382,36 @@ router.post('/change-password', async (req, res) => {
     } catch (error) {
         console.error('Error cambiando contraseña:', error);
         res.status(500).json({ message: 'Error interno del servidor' });
+    }
+});
+
+router.post('/forgot-password', async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ success: false, message: 'Email requerido' });
+        }
+
+        await requestPasswordReset(String(email).trim(), req);
+
+        return res.json({
+            success: true,
+            message: 'Si el correo existe, te enviamos un link para restablecer tu contraseña.'
+        });
+    } catch (error) {
+        console.error('Error forgot-password:', error);
+        return res.status(500).json({ success: false, message: 'Error procesando solicitud' });
+    }
+});
+
+router.post('/reset-password', async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+        await resetPassword(token, newPassword);
+        return res.json({ success: true, message: 'Contraseña actualizada' });
+    } catch (error) {
+        return res.status(400).json({ success: false, message: error.message || 'Error' });
     }
 });
 

@@ -13,6 +13,8 @@ function initializeAuth() {
     // Detectar qué formulario estamos usando
     const loginForm = document.getElementById('login-form');
     const registerForm = document.getElementById('register-form');
+    const forgotPasswordForm = document.getElementById('forgotPasswordForm');
+    const resetPasswordForm = document.getElementById('resetPasswordForm');
     
     if (loginForm) {
         authState.currentForm = 'login';
@@ -23,6 +25,16 @@ function initializeAuth() {
         authState.currentForm = 'register';
         setupRegisterForm();
     }
+
+    if (forgotPasswordForm) {
+        authState.currentForm = 'forgot';
+        setupForgotPasswordForm();
+    }
+
+    if (resetPasswordForm) {
+        authState.currentForm = 'reset';
+        setupResetPasswordForm();
+    }
     
     // Verificar si ya está logueado
     checkAuthStatus();
@@ -30,10 +42,11 @@ function initializeAuth() {
 
 // Configurar formulario de login
 function setupLoginForm() {
-    const form = document.getElementById('login-form');
+    const form = document.getElementById('loginForm');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const rememberCheckbox = document.querySelector('input[name="remember"]');
+    const togglePassword = document.getElementById('togglePassword');
     
     form.addEventListener('submit', handleLogin);
     
@@ -55,11 +68,28 @@ function setupLoginForm() {
             showToast('Credenciales de demo cargadas', 'info');
         });
     }
+
+    // Password toggle functionality
+    if (togglePassword && passwordInput) {
+        togglePassword.addEventListener('click', function() {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+        });
+    }
+
+    window.togglePasswordById = function(id) {
+        const input = document.getElementById(id);
+        if (!input) return;
+        const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+        input.setAttribute('type', type);
+    }
 }
 
 // Configurar formulario de registro
 function setupRegisterForm() {
-    const form = document.getElementById('register-form');
+    const form = document.getElementById('registerForm');
     const passwordInput = document.getElementById('password');
     const confirmPasswordInput = document.getElementById('confirm-password');
     
@@ -68,6 +98,90 @@ function setupRegisterForm() {
     // Validación de contraseña en tiempo real
     passwordInput.addEventListener('input', checkPasswordStrength);
     confirmPasswordInput.addEventListener('input', checkPasswordMatch);
+}
+
+// Configurar formulario de olvidar contraseña
+function setupForgotPasswordForm() {
+    const form = document.getElementById('forgotPasswordForm');
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const email = document.getElementById('email').value.trim();
+        if (!email || !isValidEmail(email)) {
+            showToast('Por favor ingresa un email válido', 'error');
+            return;
+        }
+
+        showLoading();
+        try {
+            const response = await fetch('/api/auth/forgot-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email })
+            });
+            const data = await response.json();
+            if (data.success) {
+                showToast(data.message || 'Revisa tu correo', 'success');
+            } else {
+                showToast(data.message || 'Error', 'error');
+            }
+        } catch (err) {
+            showToast('Error de conexión', 'error');
+        } finally {
+            hideLoading();
+        }
+    });
+}
+
+// Configurar formulario de restablecer contraseña
+function setupResetPasswordForm() {
+    const form = document.getElementById('resetPasswordForm');
+    
+    form.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+        const url = new URL(window.location.href);
+        const token = url.searchParams.get('token');
+
+        const newPassword = document.getElementById('newPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+
+        if (!token) {
+            showToast('Token faltante o inválido', 'error');
+            return;
+        }
+
+        if (!newPassword || newPassword.length < 6) {
+            showToast('La contraseña debe tener al menos 6 caracteres', 'error');
+            return;
+        }
+
+        if (newPassword !== confirmPassword) {
+            showToast('Las contraseñas no coinciden', 'error');
+            return;
+        }
+
+        showLoading();
+        try {
+            const response = await fetch('/api/auth/reset-password', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ token, newPassword })
+            });
+            const data = await response.json();
+            if (data.success) {
+                showToast('Contraseña actualizada. Ya puedes iniciar sesión.', 'success');
+                setTimeout(() => { window.location.href = 'login.html'; }, 1200);
+            } else {
+                showToast(data.message || 'Error', 'error');
+            }
+        } catch (err) {
+            showToast('Error de conexión', 'error');
+        } finally {
+            hideLoading();
+        }
+    });
 }
 
 // Manejar login
@@ -293,7 +407,7 @@ function isValidEmail(email) {
 
 function setLoading(loading) {
     authState.isLoading = loading;
-    const overlay = document.getElementById('loading-overlay');
+    const overlay = document.getElementById('loading-overlay') || document.getElementById('loadingOverlay');
     const submitBtn = document.querySelector('button[type="submit"]');
     
     if (loading) {
@@ -313,6 +427,14 @@ function setLoading(loading) {
             }
         }
     }
+}
+
+function showLoading() {
+    setLoading(true);
+}
+
+function hideLoading() {
+    setLoading(false);
 }
 
 // Sistema de notificaciones toast
