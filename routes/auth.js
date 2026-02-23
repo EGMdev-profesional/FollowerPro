@@ -393,7 +393,11 @@ router.post('/forgot-password', async (req, res) => {
             return res.status(400).json({ success: false, message: 'Email requerido' });
         }
 
-        await requestPasswordReset(String(email).trim(), req);
+        try {
+            await requestPasswordReset(String(email).trim(), req);
+        } catch (e) {
+            console.error('forgot-password send failure:', e.message);
+        }
 
         return res.json({
             success: true,

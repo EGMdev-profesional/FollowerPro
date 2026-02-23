@@ -1,38 +1,36 @@
-const nodemailer = require('nodemailer');
-
-function createTransport() {
-    const host = process.env.SMTP_HOST;
-    const port = Number(process.env.SMTP_PORT || 587);
-    const secure = String(process.env.SMTP_SECURE || '').toLowerCase() === 'true' || port === 465;
-    const user = process.env.SMTP_USER;
-    const pass = process.env.SMTP_PASS;
-
-    if (!host || !port || !user || !pass) {
-        throw new Error('SMTP config missing: set SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASS');
-    }
-
-    return nodemailer.createTransport({
-        host,
-        port,
-        secure,
-        auth: { user, pass }
-    });
-}
-
 async function sendMail({ to, subject, html, text }) {
-    const from = process.env.EMAIL_FROM || process.env.SMTP_USER;
-    if (!from) {
-        throw new Error('EMAIL_FROM (or SMTP_USER) is required');
+    const axios = require('axios');
+
+    const apiKey = process.env.RESEND_API_KEY;
+    const fromEmail = process.env.EMAIL_FROM;
+    const fromName = process.env.EMAIL_FROM_NAME || 'FollowerPro';
+
+    if (!apiKey) {
+        throw new Error('RESEND_API_KEY is required');
+    }
+    if (!fromEmail) {
+        throw new Error('EMAIL_FROM is required');
     }
 
-    const transporter = createTransport();
-    await transporter.sendMail({
-        from,
-        to,
-        subject,
-        text,
-        html
-    });
+    const from = fromName ? `${fromName} <${fromEmail}>` : fromEmail;
+
+    await axios.post(
+        'https://api.resend.com/emails',
+        {
+            from,
+            to: [to],
+            subject,
+            html: html || undefined,
+            text: text || undefined
+        },
+        {
+            timeout: Number(process.env.EMAIL_SEND_TIMEOUT_MS || 15000),
+            headers: {
+                Authorization: `Bearer ${apiKey}`,
+                'content-type': 'application/json'
+            }
+        }
+    );
 }
 
 module.exports = {
