@@ -3774,7 +3774,9 @@ function filterServices() {
     
     // Aplicar filtro de búsqueda
     if (searchTerm) {
+        const numericSearch = searchTerm.replace(/\D/g, '');
         filtered = filtered.filter(service => 
+            String(service.service || '').includes(numericSearch) ||
             service.name.toLowerCase().includes(searchTerm) ||
             service.category.toLowerCase().includes(searchTerm) ||
             (service.type && service.type.toLowerCase().includes(searchTerm))
