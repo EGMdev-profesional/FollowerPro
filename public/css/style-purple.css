@@ -310,9 +310,22 @@ body {
 }
 
 @media (max-width: 480px) {
+    .create-order-search {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .create-order-search input {
+        flex: 1 1 100%;
+        width: 100%;
+        padding-right: 1.25rem;
+    }
+
     .create-order-search button {
-        padding: 0.5rem 0.7rem;
-        font-size: 0.85rem;
+        width: 100%;
+        margin-right: 0;
+        padding: 0.55rem 0.75rem;
+        font-size: 0.9rem;
     }
 }
 
