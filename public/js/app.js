@@ -17,8 +17,86 @@ let appState = {
     servicesCache: new Map(),
     searchIndex: null,
     servicesPerPage: 50,
-    currentPageIndex: 0
+    currentPageIndex: 0,
+    servicesRenderIndex: 0,
+    servicesSentinelObserver: null
 };
+
+function resetServicesInfiniteScroll() {
+    appState.servicesRenderIndex = 0;
+    const servicesGrid = document.getElementById('services-grid');
+    if (servicesGrid) servicesGrid.innerHTML = '';
+    if (appState.servicesSentinelObserver) {
+        try { appState.servicesSentinelObserver.disconnect(); } catch (_) {}
+        appState.servicesSentinelObserver = null;
+    }
+}
+
+function ensureServicesSentinel() {
+    const servicesGrid = document.getElementById('services-grid');
+    if (!servicesGrid) return null;
+
+    let sentinel = document.getElementById('services-sentinel');
+    if (!sentinel) {
+        sentinel = document.createElement('div');
+        sentinel.id = 'services-sentinel';
+        sentinel.style.height = '1px';
+        servicesGrid.appendChild(sentinel);
+    }
+    return sentinel;
+}
+
+function renderNextServicesBatch() {
+    const servicesGrid = document.getElementById('services-grid');
+    if (!servicesGrid) return;
+
+    const list = appState.filteredServices || [];
+    const total = list.length;
+
+    if (appState.servicesRenderIndex >= total) {
+        updateServicesStats(total);
+        return;
+    }
+
+    const start = appState.servicesRenderIndex;
+    const end = Math.min(start + appState.servicesPerPage, total);
+    const fragment = document.createDocumentFragment();
+
+    for (let i = start; i < end; i++) {
+        fragment.appendChild(createOptimizedServiceCard(list[i]));
+    }
+
+    const sentinel = ensureServicesSentinel();
+    if (sentinel) {
+        servicesGrid.insertBefore(fragment, sentinel);
+    } else {
+        servicesGrid.appendChild(fragment);
+    }
+
+    appState.servicesRenderIndex = end;
+    updateServicesStats(total);
+}
+
+function setupServicesInfiniteScrollObserver() {
+    const sentinel = ensureServicesSentinel();
+    if (!sentinel) return;
+
+    if (appState.servicesSentinelObserver) {
+        try { appState.servicesSentinelObserver.disconnect(); } catch (_) {}
+    }
+
+    appState.servicesSentinelObserver = new IntersectionObserver(
+        entries => {
+            const entry = entries && entries[0];
+            if (entry && entry.isIntersecting) {
+                renderNextServicesBatch();
+            }
+        },
+        { root: null, rootMargin: '800px 0px', threshold: 0 }
+    );
+
+    appState.servicesSentinelObserver.observe(sentinel);
+}
 
 // ==================== FUNCIONES DE FORMATO ====================
 
@@ -700,7 +778,9 @@ function applyFiltersAndRender() {
     }
 
     appState.filteredServices = filteredServices;
-    renderFilteredServices();
+    resetServicesInfiniteScroll();
+    renderNextServicesBatch();
+    setupServicesInfiniteScrollObserver();
 }
 
 // Renderizar servicios filtrados con paginación
@@ -1383,14 +1463,11 @@ async function renderServices() {
             return;
         }
 
-        // Limpiar grid
-        servicesGrid.innerHTML = '';
+        resetServicesInfiniteScroll();
 
-        // Renderizar en lotes para mejor rendimiento
-        await renderServicesInBatches(appState.services, servicesGrid);
-
-        // Actualizar estadísticas después de renderizar
-        updateServicesStats(appState.services);
+        // Render inicial (50) + observer para ir cargando mientras bajas
+        renderNextServicesBatch();
+        setupServicesInfiniteScrollObserver();
 
         // Actualizar filtro de categorías
         updateCategoryFilter();
