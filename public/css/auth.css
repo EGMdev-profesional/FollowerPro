@@ -171,6 +171,10 @@ body::before {
     gap: 1.5rem;
 }
 
+.auth-form.compact {
+    gap: 1rem;
+}
+
 .form-row {
     display: grid;
     grid-template-columns: 1fr 1fr;
