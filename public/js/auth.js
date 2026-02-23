@@ -84,6 +84,11 @@ function setupLoginForm() {
         if (!input) return;
         const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
         input.setAttribute('type', type);
+        const button = input.parentElement ? input.parentElement.querySelector('button.toggle-password') : null;
+        const icon = button ? button.querySelector('i') : null;
+        if (icon) {
+            icon.className = type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+        }
     }
 }
 
