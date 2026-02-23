@@ -42,7 +42,7 @@ function initializeAuth() {
 
 // Configurar formulario de login
 function setupLoginForm() {
-    const form = document.getElementById('loginForm');
+    const form = document.getElementById('login-form');
     const emailInput = document.getElementById('email');
     const passwordInput = document.getElementById('password');
     const rememberCheckbox = document.querySelector('input[name="remember"]');
@@ -89,7 +89,7 @@ function setupLoginForm() {
 
 // Configurar formulario de registro
 function setupRegisterForm() {
-    const form = document.getElementById('registerForm');
+    const form = document.getElementById('register-form');
     const passwordInput = document.getElementById('password');
     const confirmPasswordInput = document.getElementById('confirm-password');
     
