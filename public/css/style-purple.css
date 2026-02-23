@@ -295,6 +295,10 @@ body {
     box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.12);
 }
 
+.create-order-search {
+    margin-bottom: 1rem;
+}
+
 .filter-row {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));

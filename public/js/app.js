@@ -2011,11 +2011,42 @@ function setupCreateOrderEvents() {
     console.log('🎯 Configurando eventos de crear orden...');
     
     const serviceSelect = document.getElementById('create-service-select');
+    const serviceSearch = document.getElementById('create-service-search');
     const linkInput = document.getElementById('create-order-link');
     const quantityInput = document.getElementById('create-order-quantity');
     const createBtn = document.getElementById('submit-order-btn'); // Cambiado a submit-order-btn
     const orderForm = document.getElementById('create-order-form');
     const serviceDetails = document.getElementById('service-details');
+
+    if (serviceSearch && serviceSelect) {
+        serviceSearch.addEventListener('input', function() {
+            const term = String(serviceSearch.value || '').toLowerCase().trim();
+            const numeric = term.replace(/\D/g, '');
+
+            const groups = serviceSelect.querySelectorAll('optgroup');
+            if (groups.length > 0) {
+                groups.forEach(group => {
+                    let visibleCount = 0;
+                    Array.from(group.children).forEach(option => {
+                        const optionText = (option.textContent || '').toLowerCase();
+                        const optionValue = String(option.value || '');
+                        const matches = !term || optionText.includes(term) || (numeric && optionValue.includes(numeric));
+                        option.hidden = !matches;
+                        if (matches) visibleCount++;
+                    });
+                    group.hidden = visibleCount === 0;
+                });
+            } else {
+                Array.from(serviceSelect.options).forEach((option, idx) => {
+                    if (idx === 0) return;
+                    const optionText = (option.textContent || '').toLowerCase();
+                    const optionValue = String(option.value || '');
+                    const matches = !term || optionText.includes(term) || (numeric && optionValue.includes(numeric));
+                    option.hidden = !matches;
+                });
+            }
+        });
+    }
     
     // Evento de cambio de servicio
     if (serviceSelect) {
