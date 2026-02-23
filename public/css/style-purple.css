@@ -285,6 +285,30 @@ body {
     outline: none;
 }
 
+.create-order-search {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding-left: 0;
+}
+
+.create-order-search i {
+    left: 1rem;
+}
+
+.create-order-search input {
+    flex: 1;
+    width: auto;
+    padding-right: 0.5rem;
+}
+
+.create-order-search button {
+    margin-right: 0.5rem;
+    white-space: nowrap;
+    padding: 0.6rem 0.9rem;
+    border-radius: calc(var(--border-radius) - 4px);
+}
+
 .services-search input::placeholder {
     color: var(--text-secondary);
     opacity: 0.85;

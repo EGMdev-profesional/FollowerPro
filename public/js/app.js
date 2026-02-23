@@ -281,6 +281,51 @@ function setupEventListeners() {
             }
         });
     }
+
+    function selectServiceFromSearch() {
+        if (!serviceSearch || !serviceSelect) return;
+
+        const term = String(serviceSearch.value || '').toLowerCase().trim();
+        if (!term) return;
+
+        const numeric = term.replace(/\D/g, '');
+        const options = Array.from(serviceSelect.querySelectorAll('option'));
+
+        let match = null;
+
+        if (numeric) {
+            match = options.find(o => o.value && String(o.value) === numeric);
+            if (!match) {
+                match = options.find(o => o.value && String(o.value).includes(numeric));
+            }
+        }
+
+        if (!match) {
+            match = options.find(o => (o.textContent || '').toLowerCase().includes(term));
+        }
+
+        if (match && match.value) {
+            serviceSelect.value = match.value;
+            serviceSelect.dispatchEvent(new Event('change', { bubbles: true }));
+            try { serviceSelect.focus(); } catch (_) {}
+            try { serviceSelect.scrollIntoView({ block: 'center' }); } catch (_) {}
+        } else {
+            showToast('No se encontró un servicio con esa búsqueda', 'warning');
+        }
+    }
+
+    if (serviceSearchBtn) {
+        serviceSearchBtn.addEventListener('click', selectServiceFromSearch);
+    }
+
+    if (serviceSearch) {
+        serviceSearch.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                selectServiceFromSearch();
+            }
+        });
+    }
 }
 
 // Navegación del sidebar
@@ -2089,6 +2134,7 @@ function setupCreateOrderEvents() {
     
     const serviceSelect = document.getElementById('create-service-select');
     const serviceSearch = document.getElementById('create-service-search');
+    const serviceSearchBtn = document.getElementById('create-service-search-btn');
     const linkInput = document.getElementById('create-order-link');
     const quantityInput = document.getElementById('create-order-quantity');
     const createBtn = document.getElementById('submit-order-btn'); // Cambiado a submit-order-btn
